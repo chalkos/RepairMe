@@ -1,0 +1,10 @@
+{
+    "Author": "Chalkos",
+    "Name": "RepairMe",
+    "Description": "Shows the percentage of your most-damaged piece of gear. /repairme to config",
+    "InternalName": "RepairMe",
+    "AssemblyVersion": "1.0.0.0",
+    "RepoUrl": "https://github.com/chalkos/RepairMe",
+    "ApplicableVersion": "any",
+    "DalamudApiLevel": 3
+}
