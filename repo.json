@@ -1,0 +1,20 @@
+[
+    {
+        "Author": "Chalkos",
+        "Name": "RepairMe",
+        "Description": "Shows the percentage of your most-damaged piece of gear",
+        "InternalName": "RepairMe",
+        "AssemblyVersion": "0.1.0.0",
+        "TestingAssemblyVersion": "0.1.0.0",
+        "RepoUrl": "https://github.com/chalkos/RepairMe",
+        "ApplicableVersion": "any",
+        "DalamudApiLevel": 3,
+        "IsHide": "False",
+        "IsTestingExclusive": "True",
+        "DownloadCount": 1,
+        "LastUpdate": 1627929175,
+        "DownloadLinkInstall": "https://github.com/Chalkos/RepairMe/raw/main/RepairMe.zip",
+        "DownloadLinkTesting": "https://github.com/Chalkos/RepairMe/raw/main/RepairMe.zip",
+        "DownloadLinkUpdate": "https://github.com/Chalkos/RepairMe/raw/main/RepairMe.zip"
+    }
+]

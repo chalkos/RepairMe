@@ -1,35 +1,46 @@
-﻿using ImGuiNET;
-using System;
+﻿using System;
 using System.Numerics;
+using Dalamud.Interface.Colors;
+using ImGuiNET;
+#if DEBUG
+using Dalamud.Plugin;
+using RepairMe.Common;
+#endif
+using EventHandler = RepairMe.EventHandler;
 
 namespace RepairMe
 {
-    // It is good to have this be disposable in general, in case you ever need it
-    // to do any cleanup
-    class PluginUI : IDisposable
+    internal class PluginUi : IDisposable
     {
-        private Configuration configuration;
+        // constants
+        private const float TextBgCornerRounding = 5f;
+        private const int ProgressLabelPadding = 5;
+        private const int TestingModeCycleDurationInt = 15;
+        private const float TestingModeCycleDurationFloat = TestingModeCycleDurationInt;
+        private const int AlertMaxLength = 512;
 
-        // this extra bool exists for ImGui, since you can't ref a property
-        private bool visible = false;
-        public bool Visible
+        // reference fields
+        private readonly Configuration conf;
+        private readonly EventHandler eh;
+
+        // non-config ui fields
+        private bool movableUi;
+        private float condition = 100;
+        private bool testingMode = true;
+
+        public PluginUi(Configuration conf, EventHandler eventHandler)
         {
-            get { return this.visible; }
-            set { this.visible = value; }
+            this.conf = conf;
+            eh = eventHandler;
         }
 
-        private bool settingsVisible = false;
         public bool SettingsVisible
         {
-            get { return this.settingsVisible; }
-            set { this.settingsVisible = value; }
+            get => settingsVisible;
+            set => settingsVisible = value;
         }
 
-        // passing in the image here just for simplicity
-        public PluginUI(Configuration configuration)
-        {
-            this.configuration = configuration;
-        }
+        private bool settingsVisible;
 
         public void Dispose()
         {
@@ -37,59 +48,301 @@ namespace RepairMe
 
         public void Draw()
         {
-            // This is our only draw handler attached to UIBuilder, so it needs to be
-            // able to draw any windows we might have open.
-            // Each method checks its own visibility/state to ensure it only draws when
-            // it actually makes sense.
-            // There are other ways to do this, but it is generally best to keep the number of
-            // draw delegates as low as possible.
+            if (!eh.IsActive) return;
 
-            DrawMainWindow();
+            if (settingsVisible && testingMode)
+                condition = (TestingModeCycleDurationInt - DateTime.Now.Second % TestingModeCycleDurationInt) /
+                    TestingModeCycleDurationFloat * 100;
+            else
+                condition = eh.EquipmentScannerLastEquipmentData.LowestConditionPercent;
+
+#if DEBUG
+            DrawDebugWindow();
+#endif
+            DrawConditionBarWindow();
+            DrawAlertsWindow();
             DrawSettingsWindow();
         }
 
-        public void DrawMainWindow()
+
+        private void partialDrawText(string text, Vector4 textColor, Vector4 backgroundColor, float scale = 1)
         {
-            if (!Visible)
-            {
-                return;
-            }
+            var childSize = ImGui.CalcTextSize(text);
+            childSize.X += ProgressLabelPadding * 2;
 
-            ImGui.SetNextWindowSize(new Vector2(375, 330), ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowSizeConstraints(new Vector2(375, 330), new Vector2(float.MaxValue, float.MaxValue));
-            if (ImGui.Begin("My Amazing Window", ref this.visible, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
-            {
-                ImGui.Text($"The random config bool is {this.configuration.SomePropertyToBeSavedAndWithADefault}");
+            ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, TextBgCornerRounding);
+            ImGui.PushStyleColor(ImGuiCol.ChildBg, backgroundColor);
+            ImGui.BeginChild("progressLabelContainer", childSize, false, ImGuiWindowFlags.NoInputs);
 
-                if (ImGui.Button("Show Settings"))
+            var pos = ImGui.GetCursorPos();
+            pos.X += ProgressLabelPadding;
+            ImGui.SetCursorPos(pos);
+
+            ImGui.PushStyleColor(ImGuiCol.Text, textColor);
+            ImGui.TextUnformatted(text);
+            ImGui.PopStyleColor();
+
+            ImGui.EndChild();
+            ImGui.PopStyleColor();
+            ImGui.PopStyleVar();
+        }
+
+        private void DrawConditionBarWindow()
+        {
+            if (!conf.EnableLabel && !conf.EnableBar) return;
+
+            var wFlags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse |
+                         ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize;
+
+            if (!movableUi)
+                wFlags |= ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoBackground;
+
+
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 3f);
+            ImGui.PushStyleColor(ImGuiCol.Border, new Vector4(1f, 0f, 0f, 1f));
+            ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(1f, 0f, 0f, 0.3f));
+            if (ImGui.Begin("RepairMe", wFlags))
+            {
+                if (conf.EnableLabel)
+                    partialDrawText($"{condition:F2}%", ImGuiColors.White, conf.ProgressLabelContainerBgColor);
+
+                if (conf.EnableBar)
                 {
-                    SettingsVisible = true;
+                    if (condition <= conf.CriticalCondition)
+                    {
+                        ImGui.PushStyleColor(ImGuiCol.PlotHistogram, conf.BarCriticalColor);
+                        ImGui.PushStyleColor(ImGuiCol.FrameBg, conf.BarCriticalBgColor);
+                    }
+                    else if (condition <= conf.LowCondition)
+                    {
+                        ImGui.PushStyleColor(ImGuiCol.PlotHistogram, conf.BarLowColor);
+                        ImGui.PushStyleColor(ImGuiCol.FrameBg, conf.BarLowBgColor);
+                    }
+                    else
+                    {
+                        ImGui.PushStyleColor(ImGuiCol.PlotHistogram, conf.BarOkColor);
+                        ImGui.PushStyleColor(ImGuiCol.FrameBg, conf.BarOkBgColor);
+                    }
+
+                    ImGui.ProgressBar(condition / 100, conf.BarSize, "");
+                    ImGui.PopStyleColor(2);
                 }
+
+                ImGui.End();
             }
-            ImGui.End();
+
+            ImGui.PopStyleColor(2);
+            ImGui.PopStyleVar();
+        }
+
+        public void DrawAlertsWindow()
+        {
+            if (!conf.EnableAlerts) return;
+
+            var wFlags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse |
+                         ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize;
+
+            if (!movableUi)
+                wFlags |= ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoBackground;
+
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 3f);
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, new Vector2(200, 100));
+            ImGui.PushStyleColor(ImGuiCol.Border, new Vector4(1f, 0f, 0f, 1f));
+            ImGui.PushStyleColor(ImGuiCol.WindowBg, new Vector4(1f, 0f, 0f, 0.3f));
+            if (ImGui.Begin("RepairMeAlert", wFlags))
+            {
+                if (condition <= conf.CriticalCondition)
+                    partialDrawText(conf.AlertCritical, conf.AlertCriticalColor, conf.AlertCriticalBgColor,
+                        conf.AlertScale.X);
+                else if (condition <= conf.LowCondition)
+                    partialDrawText(conf.AlertLow, conf.AlertLowColor, conf.AlertLowBgColor, conf.AlertScale.X);
+
+                ImGui.End();
+            }
+
+            ImGui.PopStyleColor(2);
+            ImGui.PopStyleVar(2);
         }
 
         public void DrawSettingsWindow()
         {
-            if (!SettingsVisible)
-            {
-                return;
-            }
+            if (!SettingsVisible) return;
 
-            ImGui.SetNextWindowSize(new Vector2(232, 75), ImGuiCond.Always);
-            if (ImGui.Begin("A Wonderful Configuration Window", ref this.settingsVisible,
-                ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+            ImGui.SetNextWindowSize(new Vector2(500, 290), ImGuiCond.Always);
+            if (ImGui.Begin("RepairMe config", ref settingsVisible,
+                ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize))
             {
-                // can't ref a property, so use a local copy
-                var configValue = this.configuration.SomePropertyToBeSavedAndWithADefault;
-                if (ImGui.Checkbox("Random Config Bool", ref configValue))
+                if (ImGui.BeginTabBar("configTabs"))
                 {
-                    this.configuration.SomePropertyToBeSavedAndWithADefault = configValue;
-                    // can save immediately on change, if you don't want to provide a "Save and Close" button
-                    this.configuration.Save();
+                    if (ImGui.BeginTabItem("Condition bar"))
+                    {
+                        ImGui.Checkbox("Move UI", ref movableUi);
+                        ImGui.SameLine();
+                        ImGui.Checkbox("Testing mode", ref testingMode); // use time based condition
+                        ImGui.Spacing();
+
+                        var enableBar = conf.EnableBar;
+                        if (ImGui.Checkbox("Show bar", ref enableBar))
+                            conf.EnableBar = enableBar;
+
+                        ImGui.SameLine();
+
+                        var enableLabel = conf.EnableLabel;
+                        if (ImGui.Checkbox("Show label", ref enableLabel))
+                            conf.EnableLabel = enableLabel;
+
+                        var barSize = conf.BarSize;
+                        if (ImGui.DragFloat2("Bar dimensions", ref barSize, 1f, 1, float.MaxValue, "%.0f"))
+                            conf.BarSize = barSize;
+
+                        ImGui.Spacing();
+                        ImGui.Text("Threshold order is OK > Low > Crit. This affects the condition bar and alerts");
+
+                        var lowCondition = conf.LowCondition;
+                        if (ImGui.SliderInt("Low condition threshold", ref lowCondition, 0, 100, "%d%%"))
+                            conf.LowCondition = lowCondition;
+
+                        var criticalCondition = conf.CriticalCondition;
+                        if (ImGui.SliderInt("Critical condition threshold", ref criticalCondition, 0, 100, "%d%%"))
+                            conf.CriticalCondition = criticalCondition;
+
+                        ImGui.EndTabItem();
+                    }
+
+                    if (ImGui.BeginTabItem("Alerts"))
+                    {
+                        var enableAlerts = conf.EnableAlerts;
+                        if (ImGui.Checkbox("Show alerts", ref enableAlerts))
+                            conf.EnableAlerts = enableAlerts;
+
+                        var alertLow = conf.AlertLow;
+
+                        ImGui.PushItemWidth(160f);
+                        if (ImGui.InputTextWithHint(string.Empty, "[Low] Alert text", ref alertLow, AlertMaxLength,
+                            ImGuiInputTextFlags.CtrlEnterForNewLine))
+                            conf.AlertLow = alertLow;
+
+                        ImGui.SameLine();
+                        ImGui.SetCursorPosX(ImGui.GetCursorPosX() - 3f);
+
+                        var alertCritical = conf.AlertCritical;
+                        if (ImGui.InputTextWithHint("[Low][Crit] Alert text (NYI)", "[Crit] Alert text",
+                            ref alertCritical,
+                            AlertMaxLength,
+                            ImGuiInputTextFlags.EnterReturnsTrue))
+                            conf.AlertCritical = alertCritical;
+                        ImGui.PopItemWidth();
+
+                        var alertScale = conf.AlertScale;
+                        if (ImGui.DragFloat2("Alert text scale", ref alertScale, 0.1f, 1, 10, "%.0f"))
+                            conf.AlertScale = alertScale;
+
+                        var alertLowColor = conf.AlertLowColor;
+                        if (ImGui.ColorEdit4("[Low] Alert color", ref alertLowColor))
+                            conf.AlertLowColor = alertLowColor;
+
+                        var alertLowBgColor = conf.AlertLowBgColor;
+                        if (ImGui.ColorEdit4("[Low] Alert background", ref alertLowBgColor))
+                            conf.AlertLowBgColor = alertLowBgColor;
+
+                        var alertCriticalColor = conf.AlertCriticalColor;
+                        if (ImGui.ColorEdit4("[Crit] Alert color", ref alertCriticalColor))
+                            conf.AlertCriticalColor = alertCriticalColor;
+
+                        var alertCriticalBgColor = conf.AlertCriticalBgColor;
+                        if (ImGui.ColorEdit4("[Crit] Alert background", ref alertCriticalBgColor))
+                            conf.AlertCriticalBgColor = alertCriticalBgColor;
+                        ImGui.EndTabItem();
+                    }
+
+                    if (ImGui.BeginTabItem("Condition bar colors"))
+                    {
+                        var progressLabelContainerBgColor = conf.ProgressLabelContainerBgColor;
+                        if (ImGui.ColorEdit4("Text background", ref progressLabelContainerBgColor))
+                            conf.ProgressLabelContainerBgColor = progressLabelContainerBgColor;
+
+                        var barOkColor = conf.BarOkColor;
+                        if (ImGui.ColorEdit4("[Ok] Bar color", ref barOkColor))
+                            conf.BarOkColor = barOkColor;
+
+                        var barOkBgColor = conf.BarOkBgColor;
+                        if (ImGui.ColorEdit4("[Ok] Bar background", ref barOkBgColor))
+                            conf.BarOkBgColor = barOkBgColor;
+
+                        var barLowColor = conf.BarLowColor;
+                        if (ImGui.ColorEdit4("[Low] Bar color", ref barLowColor))
+                            conf.BarLowColor = barLowColor;
+
+                        var barLowBgColor = conf.BarLowBgColor;
+                        if (ImGui.ColorEdit4("[Low] Bar background", ref barLowBgColor))
+                            conf.BarLowBgColor = barLowBgColor;
+
+                        var barCriticalColor = conf.BarCriticalColor;
+                        if (ImGui.ColorEdit4("[Crit] Bar color", ref barCriticalColor))
+                            conf.BarCriticalColor = barCriticalColor;
+
+                        var barCriticalBgColor = conf.BarCriticalBgColor;
+                        if (ImGui.ColorEdit4("[Crit] Bar background", ref barCriticalBgColor))
+                            conf.BarCriticalBgColor = barCriticalBgColor;
+                        ImGui.EndTabItem();
+                    }
+
+
+                    ImGui.EndTabBar();
+
+                    ImGui.SetCursorPosY(ImGui.GetWindowHeight() - 40);
+                    ImGui.Separator();
+                    ImGui.Spacing();
+                    ImGui.SetCursorPosX(ImGui.GetWindowWidth() - 135);
+
+                    if (ImGui.Button("Save")) conf.Save();
+
+                    ImGui.SameLine();
+                    if (ImGui.Button("Save & Close"))
+                    {
+                        conf.Save();
+                        SettingsVisible = false;
+                    }
                 }
+
+                ImGui.End();
             }
-            ImGui.End();
         }
+
+#if DEBUG
+        private void DrawDebugWindow()
+        {
+            var e = eh.EquipmentScannerLastEquipmentData;
+
+            if (ImGui.Begin("RepairMe Debug",
+                ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.AlwaysAutoResize))
+            {
+                try
+                {
+                    if (ImGui.BeginTable("detail", 3, ImGuiTableFlags.BordersInnerH))
+                    {
+                        for (int i = 0; i < EquipmentScanner.EquipmentContainerSize; i++)
+                        {
+                            ImGui.TableNextRow();
+                            ImGui.TableNextColumn();
+                            ImGui.Text(i.ToString());
+                            ImGui.TableNextColumn();
+                            ImGui.Text(e.Id[i].ToString());
+                            ImGui.TableNextColumn();
+                            ImGui.Text((e.Condition[i] / 300f).ToString("F2"));
+                        }
+
+                        ImGui.EndTable();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    PluginLog.Error(ex, "dont crash");
+                }
+
+                ImGui.End();
+            }
+        }
+#endif
     }
 }

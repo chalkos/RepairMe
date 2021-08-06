@@ -1,67 +1,73 @@
-﻿using Dalamud.Game.Command;
+﻿using System.Reflection;
+using Dalamud.Game.Command;
 using Dalamud.Plugin;
-using System;
-using System.IO;
-using System.Reflection;
+using FFXIVClientStructs;
 
 namespace RepairMe
 {
     public class Plugin : IDalamudPlugin
     {
-        public string Name => "RepairMe";
-
-        private const string commandName = "/repairme";
+        public const string commandName = "/repairme";
+        private Configuration configuration;
+        private EquipmentScanner em;
+        private EventHandler eventHandler;
 
         private DalamudPluginInterface pi;
-        private Configuration configuration;
-        private PluginUI ui;
-        
+        private PluginUi ui;
+
         // When loaded by LivePluginLoader, the executing assembly will be wrong.
         // Supplying this property allows LivePluginLoader to supply the correct location, so that
         // you have full compatibility when loaded normally and through LPL.
-        public string AssemblyLocation { get => assemblyLocation; set => assemblyLocation = value; }
-        private string assemblyLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
+        public string AssemblyLocation { get; set; } = Assembly.GetExecutingAssembly().Location;
+        public string Name => "RepairMe";
 
         public void Initialize(DalamudPluginInterface pluginInterface)
         {
-            this.pi = pluginInterface;
-            
-            this.configuration = this.pi.GetPluginConfig() as Configuration ?? new Configuration();
-            this.configuration.Initialize(this.pi);
+            pi = pluginInterface;
 
-            this.ui = new PluginUI(this.configuration);
+            Resolver.Initialize();
 
-            this.pi.CommandManager.AddHandler(commandName, new CommandInfo(OnCommand)
+            configuration = pi.GetPluginConfig() as Configuration ?? new Configuration();
+            configuration.Initialize(pi);
+
+            em = new EquipmentScanner(pi, configuration);
+            eventHandler = new EventHandler(pi, configuration, em);
+            ui = new PluginUi(configuration, eventHandler);
+
+            pi.CommandManager.AddHandler(commandName, new CommandInfo(OnCommand)
             {
                 HelpMessage = "RepairMe plugin configuration"
             });
 
-            this.pi.UiBuilder.OnBuildUi += DrawUI;
-            this.pi.UiBuilder.OnOpenConfigUi += (sender, args) => DrawConfigUI();
+            pi.UiBuilder.OnBuildUi += DrawUI;
+            pi.UiBuilder.OnOpenConfigUi += (sender, args) => DrawConfigUI();
+
+            eventHandler.Start();
         }
 
         public void Dispose()
         {
-            this.ui.Dispose();
+            ui.Dispose();
+            eventHandler.Dispose();
+            em.Dispose();
 
-            this.pi.CommandManager.RemoveHandler(commandName);
-            this.pi.Dispose();
+            pi.CommandManager.RemoveHandler(commandName);
+            pi.Dispose();
         }
 
         private void OnCommand(string command, string args)
         {
-            // in response to the slash command, just display our main ui
-            this.ui.Visible = true;
+            ui.SettingsVisible = true;
         }
 
         private void DrawUI()
         {
-            this.ui.Draw();
+            ui.Draw();
         }
 
         private void DrawConfigUI()
         {
-            this.ui.SettingsVisible = true;
+            ui.SettingsVisible = true;
         }
     }
 }
