@@ -226,17 +226,19 @@ namespace RepairMe
                         ImGui.SetCursorPosX(ImGui.GetCursorPosX() - 3f);
 
                         var alertCritical = conf.AlertCritical;
-                        if (ImGui.InputTextWithHint("[Low][Crit] Alert text (NYI)", "[Crit] Alert text",
+                        if (ImGui.InputTextWithHint("[Low][Crit] Alert text", "[Crit] Alert text",
                             ref alertCritical,
                             AlertMaxLength,
                             ImGuiInputTextFlags.EnterReturnsTrue))
                             conf.AlertCritical = alertCritical;
                         ImGui.PopItemWidth();
-
+                        
+                        /*
+                         // TODO: add different/larger fonts for  
                         var alertScale = conf.AlertScale;
                         if (ImGui.DragFloat2("Alert text scale", ref alertScale, 0.1f, 1, 10, "%.0f"))
                             conf.AlertScale = alertScale;
-
+                        */
                         var alertLowColor = conf.AlertLowColor;
                         if (ImGui.ColorEdit4("[Low] Alert color", ref alertLowColor))
                             conf.AlertLowColor = alertLowColor;
