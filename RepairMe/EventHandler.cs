@@ -18,7 +18,7 @@ namespace RepairMe
 
         public bool IsActive => IsLoggedIn && !IsLoading;
         private bool IsLoggedIn => pi.ClientState.IsLoggedIn;
-        private bool IsLoading => addonLoading->IsVisible;
+        private bool IsLoading => addonLoading == null || addonLoading->IsVisible;
 
         public EventHandler(DalamudPluginInterface pluginInterface, Configuration configuration,
             EquipmentScanner equipmentScanner)
@@ -55,16 +55,16 @@ namespace RepairMe
 
         private void ClientStateOnOnLogout(object sender, EventArgs e)
         {
-            addonLoading = (AtkUnitBase*) pi.Framework.Gui.GetUiObjectByName("NowLoading", 1);
+            addonLoading = null;
             Block();
         }
 
-        public void Notify()
+        private void Notify()
         {
             manualResetEvent.Set();
         }
 
-        public void Block()
+        private void Block()
         {
             manualResetEvent.Reset();
         }
@@ -93,13 +93,10 @@ namespace RepairMe
             {
                 WaitHandle.WaitAny(new[] {token.WaitHandle, manualResetEvent} /*, TimeSpan.FromSeconds(10)*/);
 
-                if (IsActive)
-                {
                     EquipmentScannerLastEquipmentData = equipmentScanner.BuildEquipmentData;
 #if DEBUG
                     pi.Framework.Gui.Chat.Print($"RepairMe update @ {DateTime.Now.ToString("HH:mm:ss")}");
 #endif
-                }
 
                 Block();
             } while (!token.IsCancellationRequested);
