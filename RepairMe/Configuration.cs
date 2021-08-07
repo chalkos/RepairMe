@@ -16,6 +16,7 @@ namespace RepairMe
 
 
         public bool EnableBar { get; set; } = true;
+        public bool EnableSpiritbond { get; set; } = true;
         public bool EnableLabel { get; set; } = true;
         public bool EnableAlerts { get; set; } = true;
 
@@ -40,6 +41,12 @@ namespace RepairMe
         public Vector4 BarCriticalColor { get; set; } = new(0.9f, 0.2f, 0, 1);
         public Vector4 BarCriticalBgColor { get; set; } = new(0.29f, 0.29f, 0.29f, 0.54f);
         public Vector4 ProgressLabelContainerBgColor { get; set; } = new(1, 1, 1, 0.2f);
+
+        public Vector4 SbarColor { get; set; } = new(1, 1, 1, 0.2f);
+        public Vector4 SbarBgColor { get; set; } = new(0.29f, 0.29f, 0.29f, 0.54f);
+        public Vector4 SbarFullColor { get; set; } = new(1, 1, 1, 1f);
+        public Vector4 SbarFullBgColor { get; set; } = new(0.29f, 0.29f, 0.29f, 0.54f);
+        
         public int Version { get; set; } = 0;
 
 

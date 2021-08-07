@@ -26,6 +26,7 @@ namespace RepairMe
         // non-config ui fields
         private bool movableUi;
         private float condition = 100;
+        private float spiritbond = 0;
         private bool testingMode = true;
 
         public PluginUi(Configuration conf, EventHandler eventHandler)
@@ -51,8 +52,12 @@ namespace RepairMe
             if (!eh.IsActive) return;
 
             if (settingsVisible && testingMode)
+            {
                 condition = (TestingModeCycleDurationInt - DateTime.Now.Second % TestingModeCycleDurationInt) /
                     TestingModeCycleDurationFloat * 100;
+                spiritbond = (DateTime.Now.Second+5) % TestingModeCycleDurationInt /
+                    TestingModeCycleDurationFloat * 100;
+            }
             else
                 condition = eh.EquipmentScannerLastEquipmentData.LowestConditionPercent;
 
@@ -106,6 +111,7 @@ namespace RepairMe
                 if (conf.EnableLabel)
                     partialDrawText($"{condition:F2}%", ImGuiColors.White, conf.ProgressLabelContainerBgColor);
 
+                var barPosition= ImGui.GetCursorPos();
                 if (conf.EnableBar)
                 {
                     if (condition <= conf.CriticalCondition)
@@ -125,6 +131,25 @@ namespace RepairMe
                     }
 
                     ImGui.ProgressBar(condition / 100, conf.BarSize, "");
+                    ImGui.PopStyleColor(2);
+                    barPosition.Y += conf.BarSize.Y+5;
+                }
+
+                if (conf.EnableSpiritbond)
+                {
+                    if (spiritbond < 100f)
+                    {
+                        ImGui.PushStyleColor(ImGuiCol.PlotHistogram, conf.SbarColor);
+                        ImGui.PushStyleColor(ImGuiCol.FrameBg, conf.SbarBgColor);
+                    }
+                    else
+                    {
+                        ImGui.PushStyleColor(ImGuiCol.PlotHistogram, conf.SbarFullColor);
+                        ImGui.PushStyleColor(ImGuiCol.FrameBg, conf.SbarFullBgColor);
+                    }
+
+                    ImGui.SetCursorPos(barPosition);
+                    ImGui.ProgressBar(condition, conf.BarSize, "");
                     ImGui.PopStyleColor(2);
                 }
 

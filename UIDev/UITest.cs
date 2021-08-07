@@ -136,6 +136,7 @@ namespace UIDev
                     ImGui.PopStyleVar();
                 }
 
+                var barPosition= ImGui.GetCursorPos();
                 if (enableBar)
                 {
                     if (condition * 100 <= criticalCondition)
@@ -153,9 +154,12 @@ namespace UIDev
                         ImGui.PushStyleColor(ImGuiCol.PlotHistogram, BarOkColor);
                         ImGui.PushStyleColor(ImGuiCol.FrameBg, BarOkBgColor);
                     }
-
                     ImGui.ProgressBar(condition, barSize, "");
                     ImGui.PopStyleColor(2);
+
+                    barPosition.Y += barSize.Y+5;
+                    ImGui.SetCursorPos(barPosition);
+                    ImGui.ProgressBar(condition, barSize, "");
                 }
 
                 ImGui.End();
