@@ -8,13 +8,12 @@ namespace RepairMe
 {
     public unsafe class EventHandler : IDisposable
     {
-        private readonly Configuration configuration;
         private readonly EquipmentScanner equipmentScanner;
         private readonly ManualResetEvent manualResetEvent;
         private readonly DalamudPluginInterface pi;
         private AtkUnitBase* addonLoading;
         internal EquipmentData EquipmentScannerLastEquipmentData;
-        private CancellationTokenSource eventLoopTokenSource;
+        private CancellationTokenSource? eventLoopTokenSource;
 
         public bool IsActive => IsLoggedIn && !IsLoading;
         private bool IsLoggedIn => pi.ClientState.IsLoggedIn;
@@ -24,7 +23,6 @@ namespace RepairMe
             EquipmentScanner equipmentScanner)
         {
             pi = pluginInterface;
-            this.configuration = configuration;
 
             this.equipmentScanner = equipmentScanner;
             manualResetEvent = new ManualResetEvent(false);
@@ -82,7 +80,7 @@ namespace RepairMe
                     {
                         if (exception is OperationCanceledException || exception is ObjectDisposedException)
                             continue;
-                        PluginLog.Error(exception, "RepairMe is now damaged. Reload to repair it.");
+                        PluginLog.Error(exception, "RepairMe stopped unexpectedly. Restart it to continue using it.");
                     }
                 }, TaskContinuationOptions.OnlyOnFaulted);
         }

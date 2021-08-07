@@ -43,8 +43,7 @@ namespace RepairMe
         internal const uint EquipmentContainerSize = 13;
 
         private readonly DalamudPluginInterface pi;
-        private readonly Configuration configuration;
-        public Action NotificationTarget { private get; set; }
+        public Action? NotificationTarget { private get; set; }
 
         private InventoryManager* inventoryManager;
         private InventoryContainer* equipmentContainer;
@@ -64,10 +63,9 @@ namespace RepairMe
         public EquipmentData BuildEquipmentData => new(idValues, conditionValues);
 
 
-        public EquipmentScanner(DalamudPluginInterface pi, Configuration configuration)
+        public EquipmentScanner(DalamudPluginInterface pi)
         {
             this.pi = pi;
-            this.configuration = configuration;
 
 #if DEBUG
             bm = new Stopwatch();

@@ -10,7 +10,7 @@ namespace RepairMe
     {
         // the below exist just to make saving less cumbersome
 
-        [NonSerialized] private DalamudPluginInterface pluginInterface;
+        [NonSerialized] private DalamudPluginInterface? pi;
 
         public bool SomePropertyToBeSavedAndWithADefault { get; set; } = true;
 
@@ -45,12 +45,12 @@ namespace RepairMe
 
         public void Initialize(DalamudPluginInterface pluginInterface)
         {
-            this.pluginInterface = pluginInterface;
+            this.pi = pluginInterface;
         }
 
         public void Save()
         {
-            pluginInterface.SavePluginConfig(this);
+            pi?.SavePluginConfig(this);
         }
     }
 }
