@@ -1,7 +1,7 @@
 {
     "Author": "Chalkos",
     "Name": "RepairMe",
-    "Description": "Shows the condition of your most-damaged piece of gear and alerts when it's low. /repairme to config",
+    "Description": "Helps you notice when your gear needs to be repaired. /repairme to config",
     "InternalName": "RepairMe",
     "AssemblyVersion": "1.0.0.0",
     "RepoUrl": "https://github.com/chalkos/RepairMe",
