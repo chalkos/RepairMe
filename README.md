@@ -1,6 +1,6 @@
 # RepairMe
 
-Plugin for XivLauncher/Dalamud that shows the condition of your most-damaged piece of gear and alerts when it's low.
+Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be repaired. It shows the condition of your most-damaged piece of gear and alerts when it's getting low.
 
 ## Commands
 

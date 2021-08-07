@@ -2,7 +2,7 @@
     {
         "Author": "Chalkos",
         "Name": "RepairMe [T]",
-        "Description": "Shows the condition of your most-damaged piece of gear and alerts when it's low.",
+        "Description": "Helps you notice when your gear needs to be repaired.",
         "InternalName": "RepairMe",
         "AssemblyVersion": "0.1.0.0",
         "TestingAssemblyVersion": "0.1.0.0",
@@ -13,7 +13,7 @@
         "IsTestingExclusive": "True",
         "DownloadCount": 1,
         "LastUpdate": 1627929175,
-        "DownloadLinkTesting": "https://github.com/Chalkos/RepairMe/raw/main/RepairMe.zip",
-        "DownloadLinkUpdate": "https://github.com/Chalkos/RepairMe/raw/main/RepairMe.zip"
+        "DownloadLinkTesting": "https://github.com/Chalkos/RepairMe/raw/main/RepairMe/RepairMe.zip",
+        "DownloadLinkUpdate": "https://github.com/Chalkos/RepairMe/raw/main/RepairMe/RepairMe.zip"
     }
 ]
