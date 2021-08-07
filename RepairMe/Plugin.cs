@@ -7,13 +7,13 @@ namespace RepairMe
 {
     public class Plugin : IDalamudPlugin
     {
-        public const string commandName = "/repairme";
-        private Configuration configuration;
-        private EquipmentScanner em;
-        private EventHandler eventHandler;
+        private const string CommandName = "/repairme";
+        private Configuration? configuration;
+        private EquipmentScanner? em;
+        private EventHandler? eventHandler;
 
-        private DalamudPluginInterface pi;
-        private PluginUi ui;
+        private DalamudPluginInterface? pi;
+        private PluginUi? ui;
 
         // When loaded by LivePluginLoader, the executing assembly will be wrong.
         // Supplying this property allows LivePluginLoader to supply the correct location, so that
@@ -30,44 +30,44 @@ namespace RepairMe
             configuration = pi.GetPluginConfig() as Configuration ?? new Configuration();
             configuration.Initialize(pi);
 
-            em = new EquipmentScanner(pi, configuration);
+            em = new EquipmentScanner(pi);
             eventHandler = new EventHandler(pi, configuration, em);
             ui = new PluginUi(configuration, eventHandler);
 
-            pi.CommandManager.AddHandler(commandName, new CommandInfo(OnCommand)
+            pi.CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
             {
                 HelpMessage = "RepairMe plugin configuration"
             });
 
-            pi.UiBuilder.OnBuildUi += DrawUI;
-            pi.UiBuilder.OnOpenConfigUi += (sender, args) => DrawConfigUI();
+            pi.UiBuilder.OnBuildUi += DrawUi;
+            pi.UiBuilder.OnOpenConfigUi += (sender, args) => DrawConfigUi();
 
             eventHandler.Start();
         }
 
         public void Dispose()
         {
-            ui.Dispose();
-            eventHandler.Dispose();
-            em.Dispose();
+            ui?.Dispose();
+            eventHandler?.Dispose();
+            em?.Dispose();
 
-            pi.CommandManager.RemoveHandler(commandName);
-            pi.Dispose();
+            pi?.CommandManager.RemoveHandler(CommandName);
+            pi?.Dispose();
         }
 
         private void OnCommand(string command, string args)
         {
-            ui.SettingsVisible = true;
+            if (ui != null) ui.SettingsVisible = true;
         }
 
-        private void DrawUI()
+        private void DrawUi()
         {
-            ui.Draw();
+            ui?.Draw();
         }
 
-        private void DrawConfigUI()
+        private void DrawConfigUi()
         {
-            ui.SettingsVisible = true;
+            if (ui != null) ui.SettingsVisible = true;
         }
     }
 }

@@ -1,0 +1,11 @@
+{
+  "Author": "Chalkos",
+  "Name": "RepairMe",
+  "InternalName": "RepairMe",
+  "AssemblyVersion": "0.1.0.1",
+  "Description": "Helps you notice when your gear needs to be repaired. /repairme to config",
+  "ApplicableVersion": "any",
+  "RepoUrl": "https://github.com/chalkos/RepairMe",
+  "DalamudApiLevel": 4,
+  "LoadPriority": 0
+}
