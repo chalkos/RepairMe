@@ -1,19 +1,14 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project>
-<Target Name="PackagePlugin" AfterTargets="Build;Rebuild" Condition="'$(Configuration)' == 'Release'">
-    <Message Text="Dala ProjectDir $(ProjectDir)" Importance="high" />
-    <Message Text="Dala OutputPath $(OutputPath)" Importance="high" />
-    <Message Text="Dala AssemblyName $(AssemblyName)" Importance="high" />
-    <Message Text="Dala AssemblyVersion $(AssemblyVersion)" Importance="high" />
-    <DalamudPackager
-            ProjectDir="$(ProjectDir)"
-            OutputPath="$(OutputPath)"
-            AssemblyName="$(AssemblyName)"
-            VersionComponents="4"
-            MakeZip="true"
-            Include="
+﻿<Project>
+    <Target Name="PackagePlugin" AfterTargets="cleanoutDir" Condition="'$(Configuration)' == 'Release'">
+        <DalamudPackager
+                ProjectDir="$(ProjectDir)"
+                OutputPath="$(OutputPath)"
+                AssemblyName="$(AssemblyName)"
+                VersionComponents="4"
+                MakeZip="true"
+                Include="
                     RepairMe.dll;
                     RepairMe.json
                 "/>
-</Target>
+    </Target>
 </Project>
