@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Numerics;
 using Dalamud.Interface.Colors;
-using ImGuiNET;
-#if DEBUG
 using Dalamud.Plugin;
-using RepairMe.Common;
-#endif
-using EventHandler = RepairMe.EventHandler;
+using ImGuiNET;
 
 namespace RepairMe
 {
@@ -55,11 +51,15 @@ namespace RepairMe
             {
                 condition = (TestingModeCycleDurationInt - DateTime.Now.Second % TestingModeCycleDurationInt) /
                     TestingModeCycleDurationFloat * 100;
-                spiritbond = (DateTime.Now.Second+5) % TestingModeCycleDurationInt /
+                spiritbond = (DateTime.Now.Second % TestingModeCycleDurationInt + 1) /
                     TestingModeCycleDurationFloat * 100;
             }
             else
+            {
                 condition = eh.EquipmentScannerLastEquipmentData.LowestConditionPercent;
+                spiritbond = eh.EquipmentScannerLastEquipmentData.HighestSpiritbondPercent;
+            }
+
 
 #if DEBUG
             DrawDebugWindow();
@@ -111,7 +111,7 @@ namespace RepairMe
                 if (conf.EnableLabel)
                     partialDrawText($"{condition:F2}%", ImGuiColors.White, conf.ProgressLabelContainerBgColor);
 
-                var barPosition= ImGui.GetCursorPos();
+                var barPosition = ImGui.GetCursorPos();
                 if (conf.EnableBar)
                 {
                     if (condition <= conf.CriticalCondition)
@@ -132,7 +132,7 @@ namespace RepairMe
 
                     ImGui.ProgressBar(condition / 100, conf.BarSize, "");
                     ImGui.PopStyleColor(2);
-                    barPosition.Y += conf.BarSize.Y+5;
+                    barPosition.Y += conf.BarSize.Y + conf.BarSpacing;
                 }
 
                 if (conf.EnableSpiritbond)
@@ -145,11 +145,10 @@ namespace RepairMe
                     else
                     {
                         ImGui.PushStyleColor(ImGuiCol.PlotHistogram, conf.SbarFullColor);
-                        ImGui.PushStyleColor(ImGuiCol.FrameBg, conf.SbarFullBgColor);
                     }
 
                     ImGui.SetCursorPos(barPosition);
-                    ImGui.ProgressBar(condition, conf.BarSize, "");
+                    ImGui.ProgressBar(spiritbond / 100, conf.BarSize, "");
                     ImGui.PopStyleColor(2);
                 }
 
@@ -257,7 +256,7 @@ namespace RepairMe
                             ImGuiInputTextFlags.EnterReturnsTrue))
                             conf.AlertCritical = alertCritical;
                         ImGui.PopItemWidth();
-                        
+
                         /*
                          // TODO: add different/larger fonts for  
                         var alertScale = conf.AlertScale;
@@ -314,6 +313,31 @@ namespace RepairMe
                         ImGui.EndTabItem();
                     }
 
+                    if (ImGui.BeginTabItem("Spiritbond"))
+                    {
+                        var enableSpiritbond = conf.EnableSpiritbond;
+                        if (ImGui.Checkbox("Show spiritbond", ref enableSpiritbond))
+                            conf.EnableSpiritbond = enableSpiritbond;
+
+                        var barSpacing = conf.BarSpacing;
+                        if (ImGui.DragInt("Bar spacing", ref barSpacing, 1, -1000, 1000, "%d"))
+                            conf.BarSpacing = barSpacing;
+
+                        var sbarColor = conf.SbarColor;
+                        if (ImGui.ColorEdit4("Spiritbond color", ref sbarColor))
+                            conf.SbarColor = sbarColor;
+
+                        var sbarBgColor = conf.SbarBgColor;
+                        if (ImGui.ColorEdit4("Spiritbond background", ref sbarBgColor))
+                            conf.SbarBgColor = sbarBgColor;
+
+                        var sbarFullColor = conf.SbarFullColor;
+                        if (ImGui.ColorEdit4("Spiritbond full color", ref sbarFullColor))
+                            conf.SbarFullColor = sbarFullColor;
+                        
+                        ImGui.EndTabItem();
+                    }
+
 
                     ImGui.EndTabBar();
 
@@ -346,7 +370,7 @@ namespace RepairMe
             {
                 try
                 {
-                    if (ImGui.BeginTable("detail", 3, ImGuiTableFlags.BordersInnerH))
+                    if (ImGui.BeginTable("detail", 4, ImGuiTableFlags.BordersInnerH))
                     {
                         for (int i = 0; i < EquipmentScanner.EquipmentContainerSize; i++)
                         {
@@ -357,6 +381,8 @@ namespace RepairMe
                             ImGui.Text(e.Id[i].ToString());
                             ImGui.TableNextColumn();
                             ImGui.Text((e.Condition[i] / 300f).ToString("F2"));
+                            ImGui.TableNextColumn();
+                            ImGui.Text((e.Spiritbond[i] / 100f).ToString("F2"));
                         }
 
                         ImGui.EndTable();

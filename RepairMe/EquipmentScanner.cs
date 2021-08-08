@@ -11,30 +11,39 @@ namespace RepairMe
     {
         public readonly uint[] Id;
         public readonly ushort[] Condition;
+        public readonly ushort[] Spiritbond;
         public readonly float LowestConditionPercent;
+        public readonly float HighestSpiritbondPercent;
         public readonly ushort LowestConditionSlot;
 
-        public EquipmentData(uint[] idValues, ushort[] conditionValues)
+        public EquipmentData(uint[] idValues, ushort[] conditionValues, ushort[] spiritbondValues)
         {
             Id = new uint[EquipmentScanner.EquipmentContainerSize];
             Condition = new ushort[EquipmentScanner.EquipmentContainerSize];
+            Spiritbond = new ushort[EquipmentScanner.EquipmentContainerSize];
 
-            uint lowestCondition = 30000;
+            LowestConditionPercent = 30000;
+            HighestSpiritbondPercent = 0;
             LowestConditionSlot = 0; // mandatory unconditional set
 
             for (var i = 0; i < EquipmentScanner.EquipmentContainerSize; i++)
             {
                 Id[i] = idValues[i];
                 Condition[i] = conditionValues[i];
+                Spiritbond[i] = spiritbondValues[i];
 
-                if (lowestCondition > Condition[i])
+                if (LowestConditionPercent > Condition[i])
                 {
-                    lowestCondition = Condition[i];
+                    LowestConditionPercent = Condition[i];
                     LowestConditionSlot = (ushort) i;
                 }
+
+                if (HighestSpiritbondPercent < spiritbondValues[i])
+                    HighestSpiritbondPercent = spiritbondValues[i];
             }
 
-            LowestConditionPercent = lowestCondition / 300f;
+            LowestConditionPercent /= 300f;
+            HighestSpiritbondPercent = HighestSpiritbondPercent /= 100f;
         }
     }
 
@@ -50,6 +59,7 @@ namespace RepairMe
         private InventoryItem* equipmentInventoryItem;
 
         private readonly ushort[] conditionValues;
+        private readonly ushort[] spiritbondValues;
         private readonly uint[] idValues;
 
 #if DEBUG
@@ -60,7 +70,7 @@ namespace RepairMe
         private ulong countTicks = 0;
 #endif
 
-        public EquipmentData BuildEquipmentData => new(idValues, conditionValues);
+        public EquipmentData BuildEquipmentData => new(idValues, conditionValues, spiritbondValues);
 
 
         public EquipmentScanner(DalamudPluginInterface pi)
@@ -72,6 +82,7 @@ namespace RepairMe
 #endif
 
             conditionValues = new ushort[EquipmentContainerSize];
+            spiritbondValues = new ushort[EquipmentContainerSize];
             idValues = new uint[EquipmentContainerSize];
 
             Setup();
@@ -110,6 +121,7 @@ namespace RepairMe
             {
                 isUpdate = conditionValues[i] != inventoryItem->Condition || idValues[i] != inventoryItem->ItemID ||
                            isUpdate;
+                spiritbondValues[i] = inventoryItem->Spiritbond;
                 conditionValues[i] = inventoryItem->Condition;
                 idValues[i] = inventoryItem->ItemID;
             }
