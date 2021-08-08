@@ -11,6 +11,7 @@ namespace RepairMe
         private readonly EquipmentScanner equipmentScanner;
         private readonly ManualResetEvent manualResetEvent;
         private readonly DalamudPluginInterface pi;
+        private const int CooldownMilliseconds = 1000;
         private AtkUnitBase* addonLoading;
         internal EquipmentData EquipmentScannerLastEquipmentData;
         private CancellationTokenSource? eventLoopTokenSource;
@@ -30,7 +31,7 @@ namespace RepairMe
             addonLoading = (AtkUnitBase*) pi.Framework.Gui.GetUiObjectByName("NowLoading", 1);
 
             equipmentScanner.NotificationTarget = Notify;
-            
+
             pi.ClientState.OnLogin += ClientStateOnOnLogin;
             pi.ClientState.OnLogout += ClientStateOnOnLogout;
         }
@@ -91,12 +92,17 @@ namespace RepairMe
             {
                 WaitHandle.WaitAny(new[] {token.WaitHandle, manualResetEvent} /*, TimeSpan.FromSeconds(10)*/);
 
-                    EquipmentScannerLastEquipmentData = equipmentScanner.BuildEquipmentData;
+                EquipmentScannerLastEquipmentData = equipmentScanner.BuildEquipmentData;
 #if DEBUG
-                    pi.Framework.Gui.Chat.Print($"RepairMe update @ {DateTime.Now.ToString("HH:mm:ss")}");
+                pi.Framework.Gui.Chat.Print($"RepairMe update @ {DateTime.Now.ToString("HH:mm:ss")}");
 #endif
 
+                // limits the equipment refreshes to 1 per second but still updating immediately when
+                // the first equipment update arrives in the 1-second timeframe
                 Block();
+                WaitHandle.WaitAny(new[] {token.WaitHandle}, CooldownMilliseconds);
+
+                
             } while (!token.IsCancellationRequested);
         }
     }
