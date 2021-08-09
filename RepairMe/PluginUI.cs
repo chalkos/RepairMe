@@ -45,28 +45,35 @@ namespace RepairMe
 
         public void Draw()
         {
-            if (!eh.IsActive) return;
+            try
+            {
+                if (!eh.IsActive) return;
 
-            if (settingsVisible && testingMode)
-            {
-                condition = (TestingModeCycleDurationInt - DateTime.Now.Second % TestingModeCycleDurationInt) /
-                    TestingModeCycleDurationFloat * 100;
-                spiritbond = (DateTime.Now.Second % TestingModeCycleDurationInt + 1) /
-                    TestingModeCycleDurationFloat * 100;
-            }
-            else
-            {
-                condition = eh.EquipmentScannerLastEquipmentData.LowestConditionPercent;
-                spiritbond = eh.EquipmentScannerLastEquipmentData.HighestSpiritbondPercent;
-            }
+                if (settingsVisible && testingMode)
+                {
+                    condition = (TestingModeCycleDurationInt - DateTime.Now.Second % TestingModeCycleDurationInt) /
+                        TestingModeCycleDurationFloat * 100;
+                    spiritbond = (DateTime.Now.Second % TestingModeCycleDurationInt + 1) /
+                        TestingModeCycleDurationFloat * 100;
+                }
+                else
+                {
+                    condition = eh.EquipmentScannerLastEquipmentData.LowestConditionPercent;
+                    spiritbond = eh.EquipmentScannerLastEquipmentData.HighestSpiritbondPercent;
+                }
 
 
 #if DEBUG
-            DrawDebugWindow();
+                DrawDebugWindow();
 #endif
-            DrawConditionBarWindow();
-            DrawAlertsWindow();
-            DrawSettingsWindow();
+                DrawConditionBarWindow();
+                DrawAlertsWindow();
+                DrawSettingsWindow();
+            }
+            catch (Exception ex)
+            {
+                PluginLog.Error(ex, "prevented GUI crash");
+            }
         }
 
 
@@ -159,7 +166,7 @@ namespace RepairMe
             ImGui.PopStyleVar();
         }
 
-        public void DrawAlertsWindow()
+        private void DrawAlertsWindow()
         {
             if (!conf.EnableAlerts) return;
 
@@ -188,7 +195,7 @@ namespace RepairMe
             ImGui.PopStyleVar(2);
         }
 
-        public void DrawSettingsWindow()
+        private void DrawSettingsWindow()
         {
             if (!SettingsVisible) return;
 
@@ -334,7 +341,7 @@ namespace RepairMe
                         var sbarFullColor = conf.SbarFullColor;
                         if (ImGui.ColorEdit4("Spiritbond full color", ref sbarFullColor))
                             conf.SbarFullColor = sbarFullColor;
-                        
+
                         ImGui.EndTabItem();
                     }
 
@@ -368,29 +375,22 @@ namespace RepairMe
             if (ImGui.Begin("RepairMe Debug",
                 ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.AlwaysAutoResize))
             {
-                try
+                if (ImGui.BeginTable("detail", 4, ImGuiTableFlags.BordersInnerH))
                 {
-                    if (ImGui.BeginTable("detail", 4, ImGuiTableFlags.BordersInnerH))
+                    for (int i = 0; i < EquipmentScanner.EquipmentContainerSize; i++)
                     {
-                        for (int i = 0; i < EquipmentScanner.EquipmentContainerSize; i++)
-                        {
-                            ImGui.TableNextRow();
-                            ImGui.TableNextColumn();
-                            ImGui.Text(i.ToString());
-                            ImGui.TableNextColumn();
-                            ImGui.Text(e.Id[i].ToString());
-                            ImGui.TableNextColumn();
-                            ImGui.Text((e.Condition[i] / 300f).ToString("F2"));
-                            ImGui.TableNextColumn();
-                            ImGui.Text((e.Spiritbond[i] / 100f).ToString("F2"));
-                        }
-
-                        ImGui.EndTable();
+                        ImGui.TableNextRow();
+                        ImGui.TableNextColumn();
+                        ImGui.Text(i.ToString());
+                        ImGui.TableNextColumn();
+                        ImGui.Text(e.Id[i].ToString());
+                        ImGui.TableNextColumn();
+                        ImGui.Text((e.Condition[i] / 300f).ToString("F2"));
+                        ImGui.TableNextColumn();
+                        ImGui.Text((e.Spiritbond[i] / 100f).ToString("F2"));
                     }
-                }
-                catch (Exception ex)
-                {
-                    PluginLog.Error(ex, "dont crash");
+
+                    ImGui.EndTable();
                 }
 
                 ImGui.End();

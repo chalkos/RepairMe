@@ -18,7 +18,31 @@ namespace RepairMe
 
         public bool IsActive => IsLoggedIn && !IsLoading;
         private bool IsLoggedIn => pi.ClientState.IsLoggedIn;
-        private bool IsLoading => addonLoading == null || addonLoading->IsVisible;
+        private bool IsLoading
+        {
+            get
+            {
+                if(addonLoading==null) SetAddonNowLoading();
+                try
+                {
+                    return addonLoading->IsVisible;
+                }
+                catch (Exception e1)
+                {
+                    PluginLog.Debug(e1, "NowLoading is being problematic");
+                    try
+                    {
+                        SetAddonNowLoading();
+                        return addonLoading->IsVisible;
+                    }
+                    catch (Exception e2)
+                    {
+                        PluginLog.Debug(e2, "NowLoading is nowhere to be found");
+                        return false;
+                    }
+                }
+            }
+        }
 
         public EventHandler(DalamudPluginInterface pluginInterface, Configuration configuration,
             EquipmentScanner equipmentScanner)
@@ -28,12 +52,17 @@ namespace RepairMe
             this.equipmentScanner = equipmentScanner;
             manualResetEvent = new ManualResetEvent(false);
 
-            addonLoading = (AtkUnitBase*) pi.Framework.Gui.GetUiObjectByName("NowLoading", 1);
+            SetAddonNowLoading();
 
             equipmentScanner.NotificationTarget = Notify;
 
             pi.ClientState.OnLogin += ClientStateOnOnLogin;
             pi.ClientState.OnLogout += ClientStateOnOnLogout;
+        }
+
+        private void SetAddonNowLoading()
+        {
+            addonLoading = (AtkUnitBase*) pi.Framework.Gui.GetUiObjectByName("NowLoading", 1);
         }
 
         public void Dispose()
@@ -48,13 +77,12 @@ namespace RepairMe
 
         private void ClientStateOnOnLogin(object sender, EventArgs e)
         {
-            addonLoading = (AtkUnitBase*) pi.Framework.Gui.GetUiObjectByName("NowLoading", 1);
+            SetAddonNowLoading();
             Notify();
         }
 
         private void ClientStateOnOnLogout(object sender, EventArgs e)
         {
-            addonLoading = null;
             Block();
         }
 
@@ -88,22 +116,29 @@ namespace RepairMe
 
         private void EventLoop(CancellationToken token)
         {
-            do
+            try
             {
-                WaitHandle.WaitAny(new[] {token.WaitHandle, manualResetEvent} /*, TimeSpan.FromSeconds(10)*/);
+                do
+                {
+                    WaitHandle.WaitAny(new[] {token.WaitHandle, manualResetEvent} /*, TimeSpan.FromSeconds(10)*/);
 
-                EquipmentScannerLastEquipmentData = equipmentScanner.BuildEquipmentData;
+                    EquipmentScannerLastEquipmentData = equipmentScanner.BuildEquipmentData;
 #if DEBUG
                 pi.Framework.Gui.Chat.Print($"RepairMe update @ {DateTime.Now.ToString("HH:mm:ss")}");
 #endif
 
-                // limits the equipment refreshes to 1 per second but still updating immediately when
-                // the first equipment update arrives in the 1-second timeframe
-                Block();
-                WaitHandle.WaitAny(new[] {token.WaitHandle}, CooldownMilliseconds);
+                    // limits the equipment refreshes to 1 per second but still updating immediately when
+                    // the first equipment update arrives in the 1-second timeframe
+                    Block();
+                    WaitHandle.WaitAny(new[] {token.WaitHandle}, CooldownMilliseconds);
 
-                
-            } while (!token.IsCancellationRequested);
+
+                } while (!token.IsCancellationRequested);
+            }
+            catch (Exception e)
+            {
+                PluginLog.Fatal(e, "prevented EventHandler crash");
+            }
         }
     }
 }

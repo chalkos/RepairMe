@@ -1,7 +1,5 @@
-﻿#if DEBUG
+﻿using System;
 using System.Diagnostics;
-#endif
-using System;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game;
 
@@ -62,11 +60,13 @@ namespace RepairMe
         private readonly ushort[] spiritbondValues;
         private readonly uint[] idValues;
 
+        private readonly Stopwatch lastUpdate;
+
 #if DEBUG
         private readonly Stopwatch bm;
-        private long minTicks = 1000;
-        private long maxTicks = 0;
-        private ulong sumTicks = 0;
+        private long minTicks;
+        private long maxTicks;
+        private ulong sumTicks;
         private ulong countTicks = 0;
 #endif
 
@@ -80,6 +80,8 @@ namespace RepairMe
 #if DEBUG
             bm = new Stopwatch();
 #endif
+            lastUpdate = new Stopwatch();
+            lastUpdate.Start();
 
             conditionValues = new ushort[EquipmentContainerSize];
             spiritbondValues = new ushort[EquipmentContainerSize];
@@ -114,29 +116,43 @@ namespace RepairMe
 #if DEBUG
             bm.Restart();
 #endif
-
-            var isUpdate = false;
-            var inventoryItem = equipmentInventoryItem;
-            for (var i = 0; i < EquipmentContainerSize; i++, inventoryItem++)
+            if (lastUpdate.ElapsedMilliseconds >= 200)
             {
-                isUpdate = conditionValues[i] != inventoryItem->Condition || idValues[i] != inventoryItem->ItemID ||
-                           isUpdate;
-                spiritbondValues[i] = inventoryItem->Spiritbond;
-                conditionValues[i] = inventoryItem->Condition;
-                idValues[i] = inventoryItem->ItemID;
+                lastUpdate.Restart();
+
+                var isUpdate = false;
+                var inventoryItem = equipmentInventoryItem;
+                for (var i = 0; i < EquipmentContainerSize; i++, inventoryItem++)
+                {
+                    isUpdate = conditionValues[i] != inventoryItem->Condition || idValues[i] != inventoryItem->ItemID ||
+                               isUpdate;
+                    spiritbondValues[i] = inventoryItem->Spiritbond;
+                    conditionValues[i] = inventoryItem->Condition;
+                    idValues[i] = inventoryItem->ItemID;
+                }
+
+                if (isUpdate && NotificationTarget != null) NotificationTarget();
             }
-
-            if (isUpdate && NotificationTarget != null) NotificationTarget();
-
 
 #if DEBUG
             bm.Stop();
-            if (minTicks > bm.ElapsedTicks) minTicks = bm.ElapsedTicks;
-            if (maxTicks < bm.ElapsedTicks) maxTicks = bm.ElapsedTicks;
-            sumTicks += (ulong) bm.ElapsedTicks;
+            if (countTicks is 0 or >= 300)
+            {
+                if (countTicks >= 300)
+                    PluginLog.Information(
+                        $"Took {minTicks}-{maxTicks} ( ran {countTicks} times ) avg: {sumTicks / (double) countTicks}");
+                minTicks = maxTicks = bm.ElapsedTicks;
+                sumTicks = (ulong) bm.ElapsedTicks;
+                countTicks = 0;
+            }
+            else
+            {
+                if (minTicks > bm.ElapsedTicks) minTicks = bm.ElapsedTicks;
+                if (maxTicks < bm.ElapsedTicks) maxTicks = bm.ElapsedTicks;
+                sumTicks += (ulong) bm.ElapsedTicks;
+            }
+
             countTicks++;
-            PluginLog.Information(
-                $"Took {minTicks}-{maxTicks} ( {bm.ElapsedTicks} ) avg: {sumTicks / (double) countTicks}");
 #endif
         }
     }
