@@ -20,7 +20,8 @@ namespace RepairMe
         private readonly EventHandler eventHandler;
 
         // non-config ui fields
-        private bool movableUi;
+        private bool movableUiCheckbox = false;
+        private bool movableUi => movableUiCheckbox && SettingsVisible;
         private float condition = 100;
         private float spiritbond = 0;
         private bool testingMode = true;
@@ -113,7 +114,7 @@ namespace RepairMe
             var wFlags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse |
                          ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize;
 
-            if (SettingsVisible && movableUi) return wFlags;
+            if (movableUi) return wFlags;
 
             wFlags |= ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoBackground;
             //ImGui.SetWindowPos(windowName, windowPos);
@@ -260,7 +261,7 @@ namespace RepairMe
                 return;
             }
 
-            if (ImGui.Checkbox("Move UI", ref movableUi)) conf.Save();
+            if (ImGui.Checkbox("Move UI", ref movableUiCheckbox)) conf.Save();
 
             ImGui.SameLine();
             if (ImGui.Checkbox("Testing mode", ref testingMode)) conf.Save();

@@ -126,7 +126,7 @@ namespace RepairMe
 #if DEBUG
                 pi.Framework.Gui.Chat.Print($"RepairMe update @ {DateTime.Now.ToString("HH:mm:ss")}");
 #endif
-                    
+
                     // limits the equipment refreshes to 1 per CooldownMilliseconds but still updating immediately when
                     // the first equipment update arrives in the CooldownMilliseconds timeframe
                     Block();
@@ -135,7 +135,10 @@ namespace RepairMe
             }
             catch (Exception e)
             {
-                PluginLog.Fatal(e, "prevented EventHandler crash");
+                if (e is OperationCanceledException or ObjectDisposedException)
+                    throw;
+                else
+                    PluginLog.Fatal(e, "prevented EventHandler crash");
             }
         }
     }

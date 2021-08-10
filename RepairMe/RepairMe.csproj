@@ -6,7 +6,7 @@
         <OutputType>Library</OutputType>
         <Authors>Chalkos</Authors>
         <Title>RepairMe</Title>
-        <Version>0.1.1.0</Version>
+        <Version>0.1.1.1</Version>
         <Authors>Chalkos</Authors>
         <TargetFramework>net48</TargetFramework>
         <LangVersion>preview</LangVersion>
