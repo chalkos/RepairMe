@@ -144,19 +144,22 @@ namespace RepairMe
 
                 if (conf.EnableSpiritbond)
                 {
+                    var stylePops = 0;
                     if (spiritbond < 100f)
                     {
                         ImGui.PushStyleColor(ImGuiCol.PlotHistogram, conf.SbarColor);
                         ImGui.PushStyleColor(ImGuiCol.FrameBg, conf.SbarBgColor);
+                        stylePops = 2;
                     }
                     else
                     {
                         ImGui.PushStyleColor(ImGuiCol.PlotHistogram, conf.SbarFullColor);
+                        stylePops = 1;
                     }
 
                     ImGui.SetCursorPos(barPosition);
                     ImGui.ProgressBar(spiritbond / 100, conf.BarSize, "");
-                    ImGui.PopStyleColor(2);
+                    ImGui.PopStyleColor(stylePops);
                 }
 
                 ImGui.End();

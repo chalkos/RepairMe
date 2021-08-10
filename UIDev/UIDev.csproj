@@ -73,6 +73,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration.cs" />
     <Compile Include="Framework\IPluginUIMock.cs" />
     <Compile Include="Framework\UIBootstrap.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

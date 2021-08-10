@@ -127,12 +127,7 @@ namespace RepairMe
                 pi.Framework.Gui.Chat.Print($"RepairMe update @ {DateTime.Now.ToString("HH:mm:ss")}");
 #endif
 
-                    // limits the equipment refreshes to 1 per second but still updating immediately when
-                    // the first equipment update arrives in the 1-second timeframe
                     Block();
-                    WaitHandle.WaitAny(new[] {token.WaitHandle}, CooldownMilliseconds);
-
-
                 } while (!token.IsCancellationRequested);
             }
             catch (Exception e)
