@@ -15,7 +15,7 @@ namespace UIDev
         private float spiritbond;
         private float condition;
 
-        private bool moveableUi = false;
+        private bool movableUi = false;
         private bool testingMode = true;
 
         private Vector4 initialBorderColor;
@@ -53,56 +53,69 @@ namespace UIDev
         // don't want to imply that is easy or the best way to go usually, so it's not done here either
         private void Draw()
         {
-            if (SettingsVisible && testingMode)
+            try
             {
-                condition = (TestingModeCycleDurationInt - DateTime.Now.Second % TestingModeCycleDurationInt) /
-                    TestingModeCycleDurationFloat * 100;
-                spiritbond = (DateTime.Now.Second % TestingModeCycleDurationInt + 1) /
-                    TestingModeCycleDurationFloat * 100;
+                if (SettingsVisible && testingMode)
+                {
+                    condition = (TestingModeCycleDurationInt - DateTime.Now.Second % TestingModeCycleDurationInt) /
+                        TestingModeCycleDurationFloat * 100;
+                    spiritbond = (DateTime.Now.Second % TestingModeCycleDurationInt + 1) /
+                        TestingModeCycleDurationFloat * 100;
+                }
+                else
+                {
+                    condition = 45;
+                    spiritbond = 90;
+                }
+
+
+                // bar condition
+                DrawConditionBar();
+
+                // bar spiritbond
+                DrawSpiritbondBar();
+
+                // percent condition
+                DrawPercent(conf.PercentConditionEnabled, condition, conf.PercentConditionWindow,
+                    conf.PercentConditionWindowChild, conf.PercentConditionColor,
+                    conf.PercentConditionBg);
+
+                // percent spiritbond
+                DrawPercent(conf.PercentSpiritbondEnabled, spiritbond, conf.PercentSpiritbondWindow,
+                    conf.PercentSpiritbondWindowChild, conf.PercentSpiritbondColor,
+                    conf.PercentSpiritbondBg);
+
+                // alert condition critical
+                if (movableUi || condition <= conf.ThresholdConditionCritical)
+                    DrawAlert(conf.AlertConditionCriticalEnabled, conf.AlertConditionCriticalText,
+                        conf.AlertConditionCriticalWindow, conf.AlertConditionCriticalWindowChild,
+                        conf.AlertConditionCriticalColor,
+                        conf.AlertConditionCriticalBg);
+
+                // alert condition low
+                if (movableUi || condition <= conf.ThresholdConditionLow &&
+                    condition > conf.ThresholdConditionCritical)
+                    DrawAlert(conf.AlertConditionLowEnabled, conf.AlertConditionLowText, conf.AlertConditionLowWindow,
+                        conf.AlertConditionLowWindowChild, conf.AlertConditionLowColor,
+                        conf.AlertConditionLowBg);
+
+                // alert spiritbond full
+                if (movableUi || conf.ThresholdSpiritbondFull <= spiritbond)
+                    DrawAlert(conf.AlertSpiritbondFullEnabled, conf.AlertSpiritbondFullText,
+                        conf.AlertSpiritbondFullWindow,
+                        conf.AlertSpiritbondFullWindowChild,
+                        conf.AlertSpiritbondFullColor, conf.AlertSpiritbondFullBg);
+
+                DrawSettingsWindow();
+
+#if DEBUG
+                DrawDebugWindow();
+#endif
             }
-            else
+            catch (Exception ex)
             {
-                condition = 45;
-                spiritbond = 90;
+                Console.WriteLine(ex.ToString());
             }
-
-
-            // bar condition
-            DrawConditionBar();
-
-            // bar spiritbond
-            DrawSpiritbondBar();
-
-            // percent condition
-            DrawPercent(conf.PercentConditionEnabled, condition, conf.PercentConditionWindow,
-                conf.PercentConditionWindowChild, conf.PercentConditionColor,
-                conf.PercentConditionBg);
-
-            // percent spiritbond
-            DrawPercent(conf.PercentSpiritbondEnabled, spiritbond, conf.PercentSpiritbondWindow,
-                conf.PercentSpiritbondWindowChild, conf.PercentSpiritbondColor,
-                conf.PercentSpiritbondBg);
-
-            // alert condition critical
-            if (moveableUi || condition <= conf.ThresholdConditionCritical)
-                DrawAlert(conf.AlertConditionCriticalEnabled, conf.AlertConditionCriticalText,
-                    conf.AlertConditionCriticalWindow, conf.AlertConditionCriticalWindowChild,
-                    conf.AlertConditionCriticalColor,
-                    conf.AlertConditionCriticalBg);
-
-            // alert condition low
-            if (moveableUi || condition <= conf.ThresholdConditionLow && condition > conf.ThresholdConditionCritical)
-                DrawAlert(conf.AlertConditionLowEnabled, conf.AlertConditionLowText, conf.AlertConditionLowWindow,
-                    conf.AlertConditionLowWindowChild, conf.AlertConditionLowColor,
-                    conf.AlertConditionLowBg);
-
-            // alert spiritbond full
-            if (moveableUi || conf.ThresholdSpiritbondFull <= spiritbond)
-                DrawAlert(conf.AlertSpiritbondFullEnabled, conf.AlertSpiritbondFullText, conf.AlertSpiritbondFullWindow,
-                    conf.AlertSpiritbondFullWindowChild,
-                    conf.AlertSpiritbondFullColor, conf.AlertSpiritbondFullBg);
-
-            DrawSettingsWindow();
         }
 
 
@@ -125,7 +138,7 @@ namespace UIDev
             var wFlags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse |
                          ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize;
 
-            if (moveableUi) return wFlags;
+            if (SettingsVisible && movableUi) return wFlags;
 
             wFlags |= ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoBackground;
             //ImGui.SetWindowPos(windowName, windowPos);
@@ -246,6 +259,7 @@ namespace UIDev
                     ImGui.SetCursorPos(pos);
                     ImGui.PushStyleColor(ImGuiCol.Text, color);
                     ImGui.TextUnformatted(text);
+                    ImGui.PopStyleColor();
 
                     ImGui.EndChild();
                 }
@@ -264,7 +278,6 @@ namespace UIDev
             if (!SettingsVisible) return;
 
             ImGui.SetColorEditOptions(ImGuiColorEditFlags.NoInputs);
-            ImGui.PushStyleColor(ImGuiCol.Border, initialBorderColor);
             ImGui.SetNextWindowSize(new Vector2(510, 525), ImGuiCond.Always);
             if (!ImGui.Begin("RepairMe config", ref settingsVisible, ImGuiWindowFlags.NoResize))
             {
@@ -272,7 +285,7 @@ namespace UIDev
                 return;
             }
 
-            if (ImGui.Checkbox("Move UI", ref moveableUi)) conf.Save();
+            if (ImGui.Checkbox("Move UI", ref movableUi)) conf.Save();
 
             ImGui.SameLine();
             if (ImGui.Checkbox("Testing mode", ref testingMode)) conf.Save();
@@ -408,9 +421,14 @@ namespace UIDev
             }
 
             ImGui.End();
-            ImGui.PopStyleColor();
         }
 
         #endregion
+        
+
+        private void DrawDebugWindow()
+        {
+            //do nothing in the UI test
+        }
     }
 }

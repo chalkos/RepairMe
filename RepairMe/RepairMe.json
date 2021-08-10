@@ -1,6 +1,6 @@
 {
     "Author": "Chalkos",
     "Name": "RepairMe",
-    "Description": "Helps you notice when your gear needs to be repaired. /repairme to config",
+    "Description": "Helps you notice when your gear needs to be repaired or has materia to be extracted. /repairme to config",
     "RepoUrl": "https://github.com/chalkos/RepairMe"
 }

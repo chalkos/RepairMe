@@ -57,7 +57,7 @@ namespace RepairMe
 
         private void OnCommand(string command, string args)
         {
-            if (ui != null) ui.SettingsVisible = !ui.SettingsVisible;
+            DrawConfigUi();
         }
 
         private void DrawUi()

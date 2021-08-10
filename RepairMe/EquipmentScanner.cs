@@ -125,7 +125,7 @@ namespace RepairMe
                 for (var i = 0; i < EquipmentContainerSize; i++, inventoryItem++)
                 {
                     isUpdate = conditionValues[i] != inventoryItem->Condition || idValues[i] != inventoryItem->ItemID ||
-                               isUpdate;
+                               spiritbondValues[i] != inventoryItem->Spiritbond || isUpdate;
                     spiritbondValues[i] = inventoryItem->Spiritbond;
                     conditionValues[i] = inventoryItem->Condition;
                     idValues[i] = inventoryItem->ItemID;
