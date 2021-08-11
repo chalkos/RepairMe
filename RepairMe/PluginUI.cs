@@ -112,7 +112,8 @@ namespace RepairMe
         private ImGuiWindowFlags PrepareWindow()
         {
             var wFlags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse |
-                         ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize;
+                         ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize |
+                         ImGuiWindowFlags.NoFocusOnAppearing;
 
             if (movableUi) return wFlags;
 
