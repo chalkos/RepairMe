@@ -9,7 +9,5 @@
     "AssemblyVersion": "0.2.0.0",
     "ApplicableVersion": "any",
     "DalamudApiLevel": 4,
-    "LoadPriority": 0,
-    "ImageUrls": null,
-    "IconUrl": null
+    "LoadPriority": 0
 }
