@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Numerics;
-using Dalamud.Interface.Colors;
-using Dalamud.Plugin;
+using Dalamud.Logging;
 using ImGuiNET;
 
 namespace RepairMe
@@ -26,9 +25,9 @@ namespace RepairMe
         private float spiritbond = 0;
         private bool testingMode = true;
 
-        public PluginUi(Configuration conf, EventHandler eventHandler)
+        public PluginUi(EventHandler eventHandler)
         {
-            this.conf = conf;
+            this.conf = Configuration.Load();
             this.eventHandler = eventHandler;
             this.initialBorderColor = ImGui.GetStyle().Colors[(int) ImGuiCol.Border];
         }

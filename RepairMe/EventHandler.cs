@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Dalamud.Plugin;
+using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace RepairMe
@@ -10,14 +10,13 @@ namespace RepairMe
     {
         private readonly EquipmentScanner equipmentScanner;
         private readonly ManualResetEvent manualResetEvent;
-        private readonly DalamudPluginInterface pi;
         private const int CooldownMilliseconds = 500;
         private AtkUnitBase* addonLoading;
         internal EquipmentData EquipmentScannerLastEquipmentData;
         private CancellationTokenSource? eventLoopTokenSource;
 
         public bool IsActive => IsLoggedIn && !IsLoading;
-        private bool IsLoggedIn => pi.ClientState.IsLoggedIn;
+        private bool IsLoggedIn => Dalamud.ClientState.IsLoggedIn;
         private bool IsLoading
         {
             get
@@ -44,11 +43,8 @@ namespace RepairMe
             }
         }
 
-        public EventHandler(DalamudPluginInterface pluginInterface, Configuration configuration,
-            EquipmentScanner equipmentScanner)
+        public EventHandler(EquipmentScanner equipmentScanner)
         {
-            pi = pluginInterface;
-
             this.equipmentScanner = equipmentScanner;
             manualResetEvent = new ManualResetEvent(false);
 
@@ -56,32 +52,32 @@ namespace RepairMe
 
             equipmentScanner.NotificationTarget = Notify;
 
-            pi.ClientState.OnLogin += ClientStateOnOnLogin;
-            pi.ClientState.OnLogout += ClientStateOnOnLogout;
+            Dalamud.ClientState.Login += ClientStateOnOnLogin;
+            Dalamud.ClientState.Logout += ClientStateOnOnLogout;
         }
 
         private void SetAddonNowLoading()
         {
-            addonLoading = (AtkUnitBase*) pi.Framework.Gui.GetUiObjectByName("NowLoading", 1);
+            addonLoading = (AtkUnitBase*) Dalamud.GameGui.GetAddonByName("NowLoading", 1);
         }
 
         public void Dispose()
         {
-            pi.ClientState.OnLogin -= ClientStateOnOnLogin;
-            pi.ClientState.OnLogout -= ClientStateOnOnLogout;
+            Dalamud.ClientState.Login -= ClientStateOnOnLogin;
+            Dalamud.ClientState.Logout -= ClientStateOnOnLogout;
 
             manualResetEvent?.Dispose();
             eventLoopTokenSource?.Cancel();
             eventLoopTokenSource?.Dispose();
         }
 
-        private void ClientStateOnOnLogin(object sender, EventArgs e)
+        private void ClientStateOnOnLogin(object? sender, EventArgs e)
         {
             SetAddonNowLoading();
             Notify();
         }
 
-        private void ClientStateOnOnLogout(object sender, EventArgs e)
+        private void ClientStateOnOnLogout(object? sender, EventArgs e)
         {
             Block();
         }
@@ -124,7 +120,7 @@ namespace RepairMe
 
                     EquipmentScannerLastEquipmentData = equipmentScanner.BuildEquipmentData;
 #if DEBUG
-                pi.Framework.Gui.Chat.Print($"RepairMe update @ {DateTime.Now.ToString("HH:mm:ss")}");
+                    Dalamud.Chat.Print($"RepairMe update @ {DateTime.Now.ToString("HH:mm:ss")}");
 #endif
 
                     // limits the equipment refreshes to 1 per CooldownMilliseconds but still updating immediately when
@@ -137,8 +133,8 @@ namespace RepairMe
             {
                 if (e is OperationCanceledException or ObjectDisposedException)
                     throw;
-                else
-                    PluginLog.Fatal(e, "prevented EventHandler crash");
+                
+                PluginLog.Fatal(e, "prevented EventHandler crash");
             }
         }
     }

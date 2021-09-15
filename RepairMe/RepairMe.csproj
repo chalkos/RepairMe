@@ -6,84 +6,70 @@
         <OutputType>Library</OutputType>
         <Authors>Chalkos</Authors>
         <Title>RepairMe</Title>
-        <Version>0.1.1.2</Version>
+        <Version>0.2.0.0</Version>
         <Authors>Chalkos</Authors>
-        <TargetFramework>net48</TargetFramework>
-        <LangVersion>preview</LangVersion>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <Nullable>enable</Nullable>
         <Deterministic>true</Deterministic>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     </PropertyGroup>
 
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PropertyGroup>
+        <TargetFramework>net5.0-windows</TargetFramework>
+        <Platforms>x64</Platforms>
+        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <OutputPath>$(AppData)\XIVLauncher\devPlugins\RepairMe\</OutputPath>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
         <DebugSymbols>true</DebugSymbols>
         <DebugType>full</DebugType>
         <Optimize>false</Optimize>
-        <OutputPath>bin\Debug\</OutputPath>
         <DefineConstants>DEBUG;TRACE</DefineConstants>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
 
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
         <DebugType>pdbonly</DebugType>
         <Optimize>true</Optimize>
-        <OutputPath>bin\Release\</OutputPath>
-        <DefineConstants>TRACE</DefineConstants>
+        <DefineConstants>RELEASE;TRACE</DefineConstants>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
+    </PropertyGroup>
+
     <ItemGroup>
-        <PackageReference Include="ILRepack" Version="2.0.18" GeneratePathProperty="true"/>
-        <PackageReference Include="DalamudPackager" Version="1.2.2"/>
-        <Reference Include="Dalamud">
-            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\5.2.7.0\Dalamud.dll</HintPath>
-            <Private>False</Private>
-        </Reference>
+        <!--<None Include="DalamudPackager.targets" />-->
+        <Content Include="RepairMe.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="DalamudPackager" Version="2.1.2" />
         <Reference Include="FFXIVClientStructs">
-            <HintPath>..\..\FFXIVClientStructs\bin\Release\FFXIVClientStructs.dll</HintPath>
+            <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
+            <Private>false</Private>
         </Reference>
-        <Reference Include="FFXIVClientStructs.Common">
-            <HintPath>..\..\FFXIVClientStructs\bin\Release\FFXIVClientStructs.Common.dll</HintPath>
+        <Reference Include="Dalamud">
+            <HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
+            <Private>false</Private>
         </Reference>
         <Reference Include="ImGui.NET">
-            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\5.2.7.0\ImGui.NET.dll</HintPath>
-            <Private>False</Private>
+            <HintPath>$(DalamudLibPath)ImGui.NET.dll</HintPath>
+            <Private>false</Private>
         </Reference>
         <Reference Include="ImGuiScene">
-            <HintPath>$(AppData)\XIVLauncher\addon\Hooks\5.2.7.0\ImGuiScene.dll</HintPath>
-            <Private>False</Private>
+            <HintPath>$(DalamudLibPath)ImGuiScene.dll</HintPath>
+            <Private>false</Private>
         </Reference>
     </ItemGroup>
-    <ItemGroup>
-        <None Include="DalamudPackager.targets"/>
-        <None Include="RepairMe.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-    </ItemGroup>
-
-    <Target Name="ILRepack" AfterTargets="Build">
-        <ItemGroup>
-            <InputAssemblies Include="$(TargetPath)"/>
-            <InputAssemblies Include="$(TargetDir)*.dll" Exclude="$(TargetPath)"/>
-        </ItemGroup>
-        <Exec Command="$(ILRepack) /lib:$(DalamudLibPath) /out:$(TargetDir)$(TargetFileName) @(InputAssemblies, ' ')"/>
-    </Target>
-
-    <Target Name="CleanOutDir" AfterTargets="ILRepack">
-        <ItemGroup>
-            <DeleteAssemblies Include="$(TargetDir)*.dll" Exclude="$(TargetPath)"/>
-        </ItemGroup>
-        <Message Text="Deleting @(DeleteAssemblies)" Importance="high"/>
-        <Delete Files="@(DeleteAssemblies)"/>
-    </Target>
-
-    <Target Name="PackagePlugin" AfterTargets="CleanOutDir" Condition="'$(Configuration)' == 'Release'">
-        <Message Text="Deleting @(DeleteAssemblies)" Importance="high"/>
-        <DalamudPackager ProjectDir="$(ProjectDir)" OutputPath="$(OutputPath)" AssemblyName="$(AssemblyName)" VersionComponents="4" MakeZip="true" Include="&#xD;&#xA;                    RepairMe.dll;&#xD;&#xA;                    RepairMe.json&#xD;&#xA;                "/>
-    </Target>
 </Project>

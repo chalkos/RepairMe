@@ -1,7 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
+using Dalamud.Game.ClientState;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game;
+
+#if DEBUG
+using Dalamud.Logging;
+#endif
 
 namespace RepairMe
 {
@@ -50,6 +55,7 @@ namespace RepairMe
         internal const uint EquipmentContainerSize = 13;
 
         private readonly DalamudPluginInterface pi;
+        private readonly ClientState clientState;
         public Action? NotificationTarget { private get; set; }
 
         private InventoryManager* inventoryManager;
@@ -73,9 +79,10 @@ namespace RepairMe
         public EquipmentData BuildEquipmentData => new(idValues, conditionValues, spiritbondValues);
 
 
-        public EquipmentScanner(DalamudPluginInterface pi)
+        public EquipmentScanner()
         {
-            this.pi = pi;
+            this.pi = Dalamud.PluginInterface;
+            this.clientState = Dalamud.ClientState;
 
 #if DEBUG
             bm = new Stopwatch();
@@ -89,17 +96,17 @@ namespace RepairMe
 
             Setup();
 
-            pi.UiBuilder.OnBuildUi += GetConditionInfo;
-            pi.ClientState.OnLogin += ClientStateOnOnLogin;
+            pi.UiBuilder.Draw += GetConditionInfo;
+            clientState.Login += ClientStateOnOnLogin;
         }
 
         public void Dispose()
         {
-            pi.UiBuilder.OnBuildUi -= GetConditionInfo;
-            pi.ClientState.OnLogin -= ClientStateOnOnLogin;
+            pi.UiBuilder.Draw += GetConditionInfo;
+            clientState.Login += ClientStateOnOnLogin;
         }
 
-        private void ClientStateOnOnLogin(object sender, EventArgs e)
+        private void ClientStateOnOnLogin(object? sender, EventArgs e)
         {
             Setup();
         }

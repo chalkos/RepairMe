@@ -91,15 +91,19 @@ namespace RepairMe
         
         public int Version { get; set; } = 0;
 
-
-        public void Initialize(DalamudPluginInterface pluginInterface)
-        {
-            this.pi = pluginInterface;
-        }
-
         public void Save()
         {
-            pi?.SavePluginConfig(this);
+            Dalamud.PluginInterface.SavePluginConfig(this);
+        }
+        
+        public static Configuration Load()
+        {
+            if (Dalamud.PluginInterface.GetPluginConfig() is Configuration config)
+                return config;
+
+            config = new Configuration();
+            config.Save();
+            return config;
         }
     }
 }
