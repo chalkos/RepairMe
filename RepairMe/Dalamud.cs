@@ -10,7 +10,7 @@ using Dalamud.Plugin;
 
 namespace RepairMe
 {
-        public class Dalamud
+    public class Dalamud
     {
         public static void DalamudInitialize(DalamudPluginInterface pluginInterface)
             => pluginInterface.Create<Dalamud>();

@@ -15,7 +15,7 @@ namespace RepairMe
         private readonly Vector4 initialBorderColor;
 
         // reference fields
-        private readonly Configuration conf;
+        private Configuration conf => Configuration.GetOrLoad();
         private readonly EventHandler eventHandler;
 
         // non-config ui fields
@@ -27,9 +27,8 @@ namespace RepairMe
 
         public PluginUi(EventHandler eventHandler)
         {
-            this.conf = Configuration.Load();
             this.eventHandler = eventHandler;
-            this.initialBorderColor = ImGui.GetStyle().Colors[(int) ImGuiCol.Border];
+            initialBorderColor = ImGui.GetStyle().Colors[(int) ImGuiCol.Border];
         }
 
         public bool SettingsVisible

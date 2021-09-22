@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Numerics;
 using Dalamud.Configuration;
-using Dalamud.Plugin;
 using static RepairMe.Dalamud;
 
 namespace RepairMe
@@ -89,19 +88,28 @@ namespace RepairMe
         
         public int Version { get; set; } = 0;
 
+        // the below exist just to make saving/loading less cumbersome
+        [NonSerialized]
+        private static Configuration? _cachedConfig;
+
         public void Save()
         {
             PluginInterface.SavePluginConfig(this);
         }
-        
-        public static Configuration Load()
-        {
-            if (PluginInterface.GetPluginConfig() is Configuration config)
-                return config;
 
-            config = new Configuration();
-            config.Save();
-            return config;
+        public static Configuration GetOrLoad()
+        {
+            if (_cachedConfig != null)
+                return _cachedConfig;
+            
+            if (PluginInterface.GetPluginConfig() is not Configuration config)
+            {
+                config = new Configuration();
+                config.Save();
+            }
+            
+            _cachedConfig = config;
+            return _cachedConfig;
         }
     }
 }
