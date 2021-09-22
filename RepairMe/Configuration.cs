@@ -2,17 +2,15 @@
 using System.Numerics;
 using Dalamud.Configuration;
 using Dalamud.Plugin;
+using static RepairMe.Dalamud;
 
 namespace RepairMe
 {
     [Serializable]
     public class Configuration : IPluginConfiguration
     {
-        // the below exist just to make saving less cumbersome
+        // thresholds stuff
 
-        [NonSerialized] private DalamudPluginInterface? pi;
-
-        // threasholds stuff
         public int ThresholdConditionLow = 50;
         public int ThresholdConditionCritical = 30;
         [NonSerialized] public readonly int ThresholdSpiritbondFull = 100;
@@ -93,12 +91,12 @@ namespace RepairMe
 
         public void Save()
         {
-            Dalamud.PluginInterface.SavePluginConfig(this);
+            PluginInterface.SavePluginConfig(this);
         }
         
         public static Configuration Load()
         {
-            if (Dalamud.PluginInterface.GetPluginConfig() is Configuration config)
+            if (PluginInterface.GetPluginConfig() is Configuration config)
                 return config;
 
             config = new Configuration();

@@ -1,25 +1,8 @@
 ﻿using System.Reflection;
-using Dalamud.Data;
-using Dalamud.Game;
-using Dalamud.Game.ClientState;
-using Dalamud.Game.ClientState.Buddy;
-using Dalamud.Game.ClientState.Conditions;
-using Dalamud.Game.ClientState.Fates;
-using Dalamud.Game.ClientState.JobGauge;
-using Dalamud.Game.ClientState.Keys;
-using Dalamud.Game.ClientState.Objects;
-using Dalamud.Game.ClientState.Party;
 using Dalamud.Game.Command;
-using Dalamud.Game.Gui;
-using Dalamud.Game.Gui.FlyText;
-using Dalamud.Game.Gui.PartyFinder;
-using Dalamud.Game.Gui.Toast;
-using Dalamud.Game.Libc;
-using Dalamud.Game.Network;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin;
 using FFXIVClientStructs;
-using SigScanner = FFXIVClientStructs.SigScanner;
+using static RepairMe.Dalamud;
 
 namespace RepairMe
 {
@@ -39,20 +22,20 @@ namespace RepairMe
 
         public RepairMe(DalamudPluginInterface pluginInterface)
         {
-            Dalamud.Initialize(pluginInterface);
+            DalamudInitialize(pluginInterface);
             Resolver.Initialize();
 
             equipmentScanner = new EquipmentScanner();
             eventHandler = new EventHandler(equipmentScanner);
             ui = new PluginUi(eventHandler);
 
-            Dalamud.Commands.AddHandler(CommandName, new CommandInfo(OnCommand)
+            Commands.AddHandler(CommandName, new CommandInfo(OnCommand)
             {
                 HelpMessage = "RepairMe plugin configuration"
             });
             
-            Dalamud.PluginInterface.UiBuilder.Draw += DrawUi;
-            Dalamud.PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUi;
+            PluginInterface.UiBuilder.Draw += DrawUi;
+            PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUi;
 
             eventHandler.Start();
         }
@@ -63,9 +46,9 @@ namespace RepairMe
             eventHandler?.Dispose();
             equipmentScanner?.Dispose();
 
-            Dalamud.Commands.RemoveHandler(CommandName);
-            Dalamud.PluginInterface.UiBuilder.Draw -= DrawUi;
-            Dalamud.PluginInterface.UiBuilder.OpenConfigUi -= DrawConfigUi;
+            Commands.RemoveHandler(CommandName);
+            PluginInterface.UiBuilder.Draw -= DrawUi;
+            PluginInterface.UiBuilder.OpenConfigUi -= DrawConfigUi;
         }
 
         private void OnCommand(string command, string args)

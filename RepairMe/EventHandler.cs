@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using static RepairMe.Dalamud;
 
 namespace RepairMe
 {
@@ -16,7 +17,7 @@ namespace RepairMe
         private CancellationTokenSource? eventLoopTokenSource;
 
         public bool IsActive => IsLoggedIn && !IsLoading;
-        private bool IsLoggedIn => Dalamud.ClientState.IsLoggedIn;
+        private bool IsLoggedIn => ClientState.IsLoggedIn;
         private bool IsLoading
         {
             get
@@ -52,19 +53,19 @@ namespace RepairMe
 
             equipmentScanner.NotificationTarget = Notify;
 
-            Dalamud.ClientState.Login += ClientStateOnOnLogin;
-            Dalamud.ClientState.Logout += ClientStateOnOnLogout;
+            ClientState.Login += ClientStateOnOnLogin;
+            ClientState.Logout += ClientStateOnOnLogout;
         }
 
         private void SetAddonNowLoading()
         {
-            addonLoading = (AtkUnitBase*) Dalamud.GameGui.GetAddonByName("NowLoading", 1);
+            addonLoading = (AtkUnitBase*) GameGui.GetAddonByName("NowLoading", 1);
         }
 
         public void Dispose()
         {
-            Dalamud.ClientState.Login -= ClientStateOnOnLogin;
-            Dalamud.ClientState.Logout -= ClientStateOnOnLogout;
+            ClientState.Login -= ClientStateOnOnLogin;
+            ClientState.Logout -= ClientStateOnOnLogout;
 
             manualResetEvent?.Dispose();
             eventLoopTokenSource?.Cancel();

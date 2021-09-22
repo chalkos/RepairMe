@@ -6,8 +6,7 @@
         <OutputType>Library</OutputType>
         <Authors>Chalkos</Authors>
         <Title>RepairMe</Title>
-        <Version>0.2.0.0</Version>
-        <Authors>Chalkos</Authors>
+        <Version>0.2.0.1</Version>
         <Deterministic>true</Deterministic>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -22,7 +21,9 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-        <OutputPath>$(AppData)\XIVLauncher\devPlugins\RepairMe\</OutputPath>
+        <OutputPath>$(AppData)\XIVLauncher\devPlugins\$(Title)\</OutputPath>
+        <WarningLevel>4</WarningLevel>
+        <ErrorReport>prompt</ErrorReport>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
@@ -30,24 +31,19 @@
         <DebugType>full</DebugType>
         <Optimize>false</Optimize>
         <DefineConstants>DEBUG;TRACE</DefineConstants>
-        <ErrorReport>prompt</ErrorReport>
-        <WarningLevel>4</WarningLevel>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
         <DebugType>pdbonly</DebugType>
         <Optimize>true</Optimize>
         <DefineConstants>RELEASE;TRACE</DefineConstants>
-        <ErrorReport>prompt</ErrorReport>
-        <WarningLevel>4</WarningLevel>
     </PropertyGroup>
 
     <PropertyGroup>
-        <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
+        <DalamudLibPath>$(appdata)\XIVLauncher-api4\addon\Hooks\dev\</DalamudLibPath>
     </PropertyGroup>
 
     <ItemGroup>
-        <!--<None Include="DalamudPackager.targets" />-->
         <Content Include="RepairMe.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>

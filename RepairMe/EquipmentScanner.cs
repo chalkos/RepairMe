@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
-using Dalamud.Game.ClientState;
-using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using static RepairMe.Dalamud;
 
 #if DEBUG
 using Dalamud.Logging;
@@ -54,8 +53,6 @@ namespace RepairMe
     {
         internal const uint EquipmentContainerSize = 13;
 
-        private readonly DalamudPluginInterface pi;
-        private readonly ClientState clientState;
         public Action? NotificationTarget { private get; set; }
 
         private InventoryManager* inventoryManager;
@@ -81,9 +78,6 @@ namespace RepairMe
 
         public EquipmentScanner()
         {
-            this.pi = Dalamud.PluginInterface;
-            this.clientState = Dalamud.ClientState;
-
 #if DEBUG
             bm = new Stopwatch();
 #endif
@@ -96,14 +90,14 @@ namespace RepairMe
 
             Setup();
 
-            pi.UiBuilder.Draw += GetConditionInfo;
-            clientState.Login += ClientStateOnOnLogin;
+            PluginInterface.UiBuilder.Draw += GetConditionInfo;
+            ClientState.Login += ClientStateOnOnLogin;
         }
 
         public void Dispose()
         {
-            pi.UiBuilder.Draw += GetConditionInfo;
-            clientState.Login += ClientStateOnOnLogin;
+            PluginInterface.UiBuilder.Draw -= GetConditionInfo;
+            ClientState.Login -= ClientStateOnOnLogin;
         }
 
         private void ClientStateOnOnLogin(object? sender, EventArgs e)
