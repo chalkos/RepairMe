@@ -6,7 +6,6 @@
     "RepoUrl": "https://github.com/chalkos/RepairMe",
     "Tags": ["Repair", "Materia", "Spiritbond", "Alert"],
     "InternalName": "RepairMe",
-    "AssemblyVersion": "0.2.0.0",
     "ApplicableVersion": "any",
     "DalamudApiLevel": 4,
     "LoadPriority": 0
