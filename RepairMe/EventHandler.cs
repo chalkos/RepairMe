@@ -18,11 +18,12 @@ namespace RepairMe
 
         public bool IsActive => IsLoggedIn && !IsLoading;
         private bool IsLoggedIn => ClientState.IsLoggedIn;
+
         private bool IsLoading
         {
             get
             {
-                if(addonLoading==null) SetAddonNowLoading();
+                if (addonLoading == null) SetAddonNowLoading();
                 try
                 {
                     return addonLoading->IsVisible;
@@ -59,7 +60,7 @@ namespace RepairMe
 
         private void SetAddonNowLoading()
         {
-            addonLoading = (AtkUnitBase*) GameGui.GetAddonByName("NowLoading", 1);
+            addonLoading = (AtkUnitBase*)GameGui.GetAddonByName("NowLoading", 1);
         }
 
         public void Dispose()
@@ -117,24 +118,24 @@ namespace RepairMe
             {
                 do
                 {
-                    WaitHandle.WaitAny(new[] {token.WaitHandle, manualResetEvent} /*, TimeSpan.FromSeconds(10)*/);
+                    WaitHandle.WaitAny(new[] { token.WaitHandle, manualResetEvent } /*, TimeSpan.FromSeconds(10)*/);
 
                     EquipmentScannerLastEquipmentData = equipmentScanner.BuildEquipmentData;
 #if DEBUG
-                    Dalamud.Chat.Print($"RepairMe update @ {DateTime.Now.ToString("HH:mm:ss")}");
+                    PluginLog.Information($"RepairMe update @ {DateTime.Now:HH:mm:ss}");
 #endif
 
                     // limits the equipment refreshes to 1 per CooldownMilliseconds but still updating immediately when
                     // the first equipment update arrives in the CooldownMilliseconds timeframe
                     Block();
-                    WaitHandle.WaitAny(new[] {token.WaitHandle}, CooldownMilliseconds);
+                    WaitHandle.WaitAny(new[] { token.WaitHandle }, CooldownMilliseconds);
                 } while (!token.IsCancellationRequested);
             }
             catch (Exception e)
             {
                 if (e is OperationCanceledException or ObjectDisposedException)
                     throw;
-                
+
                 PluginLog.Fatal(e, "prevented EventHandler crash");
             }
         }
