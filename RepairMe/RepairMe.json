@@ -10,10 +10,10 @@
     "DalamudApiLevel": 4,
     "LoadPriority": 0,
     "ImageUrls": [
-        "https://github.com/chalkos/RepairMe/raw/api4/images/image1.png",
-        "https://github.com/chalkos/RepairMe/raw/api4/images/image2.png",
-        "https://github.com/chalkos/RepairMe/raw/api4/images/image3.png",
-        "https://github.com/chalkos/RepairMe/raw/api4/images/image4.png"
+        "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/image1.png",
+        "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/image2.png",
+        "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/image3.png",
+        "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/image4.png"
     ],
-    "IconUrl": "https://github.com/chalkos/RepairMe/raw/api4/images/icon.png"
+    "IconUrl": "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/icon.png"
 }
