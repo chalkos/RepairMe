@@ -28,7 +28,7 @@ namespace RepairMe
         public PluginUi(EventHandler eventHandler)
         {
             this.eventHandler = eventHandler;
-            initialBorderColor = ImGui.GetStyle().Colors[(int) ImGuiCol.Border];
+            initialBorderColor = ImGui.GetStyle().Colors[(int)ImGuiCol.Border];
         }
 
         public bool SettingsVisible
@@ -166,10 +166,9 @@ namespace RepairMe
                 ImGui.ProgressBar(condition / 100f, conf.BarConditionSize, "");
 
                 PopBarColors();
-
-                ImGui.End();
             }
 
+            ImGui.End();
             PopWindowEditingStyle();
         }
 
@@ -191,10 +190,9 @@ namespace RepairMe
                 ImGui.ProgressBar(spiritbond / 100f, conf.BarSpiritbondSize, "");
 
                 PopBarColors();
-
-                ImGui.End();
             }
 
+            ImGui.End();
             PopWindowEditingStyle();
         }
 
@@ -241,18 +239,24 @@ namespace RepairMe
 
                 ImGui.PopStyleColor();
                 ImGui.PopStyleVar();
-
-                ImGui.End();
             }
 
+            ImGui.End();
+
             PopWindowEditingStyle(isAlert);
+        }
+
+        private void ColorPicker(string label, ref Vector4 color)
+        {
+            ImGui.TableNextColumn();
+            if (ImGui.ColorEdit4(label, ref color, ImGuiColorEditFlags.NoInputs))
+                conf.Save();
         }
 
         private void DrawSettingsWindow()
         {
             if (!SettingsVisible) return;
 
-            ImGui.SetColorEditOptions(ImGuiColorEditFlags.NoInputs);
             ImGui.SetNextWindowSize(new Vector2(510, 525), ImGuiCond.Always);
             if (!ImGui.Begin("RepairMe config", ref settingsVisible, ImGuiWindowFlags.NoResize))
             {
@@ -307,42 +311,18 @@ namespace RepairMe
                 ImGui.Text("Colors support transparency, including becoming fully transparent");
                 if (ImGui.BeginTable("condition-colors", 2))
                 {
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Percentage Color", ref conf.PercentConditionColor)) conf.Save();
-
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Percentage Background", ref conf.PercentConditionBg)) conf.Save();
-
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Bar Color", ref conf.BarConditionOkColor)) conf.Save();
-
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Bar Background", ref conf.BarConditionOkBackground)) conf.Save();
-
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Bar Low Color", ref conf.BarConditionLowColor)) conf.Save();
-
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Bar Low Background", ref conf.BarConditionLowBackground)) conf.Save();
-
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Bar Critical Color", ref conf.BarConditionCriticalColor)) conf.Save();
-
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Bar Critical Background", ref conf.BarConditionCriticalBackground))
-                        conf.Save();
-
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Alert Low Color", ref conf.AlertConditionLowColor)) conf.Save();
-
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Alert Low Background", ref conf.AlertConditionLowBg)) conf.Save();
-
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Alert Critical Color", ref conf.AlertConditionCriticalColor)) conf.Save();
-
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Alert Critical Background", ref conf.AlertConditionCriticalBg)) conf.Save();
+                    ColorPicker("Percentage Color", ref conf.PercentConditionColor);
+                    ColorPicker("Percentage Background", ref conf.PercentConditionBg);
+                    ColorPicker("Bar Color", ref conf.BarConditionOkColor);
+                    ColorPicker("Bar Background", ref conf.BarConditionOkBackground);
+                    ColorPicker("Bar Low Color", ref conf.BarConditionLowColor);
+                    ColorPicker("Bar Low Background", ref conf.BarConditionLowBackground);
+                    ColorPicker("Bar Critical Color", ref conf.BarConditionCriticalColor);
+                    ColorPicker("Bar Critical Background", ref conf.BarConditionCriticalBackground);
+                    ColorPicker("Alert Low Color", ref conf.AlertConditionLowColor);
+                    ColorPicker("Alert Low Background", ref conf.AlertConditionLowBg);
+                    ColorPicker("Alert Critical Color", ref conf.AlertConditionCriticalColor);
+                    ColorPicker("Alert Critical Background", ref conf.AlertConditionCriticalBg);
                     ImGui.EndTable();
                 }
             }
@@ -367,29 +347,14 @@ namespace RepairMe
                 ImGui.Text("Colors support transparency, including becoming fully transparent");
                 if (ImGui.BeginTable("spiritbond-colors", 2))
                 {
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Percentage Color", ref conf.PercentSpiritbondColor)) conf.Save();
-
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Percentage Background", ref conf.PercentSpiritbondBg)) conf.Save();
-
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Bar Color", ref conf.BarSpiritbondProgressColor)) conf.Save();
-
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Bar Background", ref conf.BarSpiritbondProgressBackground)) conf.Save();
-
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Bar Full Color", ref conf.BarSpiritbondFullColor)) conf.Save();
-
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Bar Full Background", ref conf.BarSpiritbondFullBackground)) conf.Save();
-
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Alert Full Color", ref conf.AlertSpiritbondFullColor)) conf.Save();
-
-                    ImGui.TableNextColumn();
-                    if (ImGui.ColorEdit4("Alert Full Background", ref conf.AlertSpiritbondFullBg)) conf.Save();
+                    ColorPicker("Percentage Color", ref conf.PercentSpiritbondColor);
+                    ColorPicker("Percentage Background", ref conf.PercentSpiritbondBg);
+                    ColorPicker("Bar Color", ref conf.BarSpiritbondProgressColor);
+                    ColorPicker("Bar Background", ref conf.BarSpiritbondProgressBackground);
+                    ColorPicker("Bar Full Color", ref conf.BarSpiritbondFullColor);
+                    ColorPicker("Bar Full Background", ref conf.BarSpiritbondFullBackground);
+                    ColorPicker("Alert Full Color", ref conf.AlertSpiritbondFullColor);
+                    ColorPicker("Alert Full Background", ref conf.AlertSpiritbondFullBg);
                     ImGui.TableNextColumn();
                     ImGui.EndTable();
                 }
@@ -423,9 +388,8 @@ namespace RepairMe
 
                     ImGui.EndTable();
                 }
-
-                ImGui.End();
             }
+            ImGui.End();
         }
 #endif
     }

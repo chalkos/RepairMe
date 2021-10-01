@@ -19,6 +19,9 @@ Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be 
 
 ## Changelog
 
+* v0.2.0.4
+  * Disable inputs for colors only on the config window (was disabling globally)
+  * Config window can now be collapsed without errors
 * v0.2.0.2
   * Try to have images shown in Dalamud
 * v0.2.0.1
