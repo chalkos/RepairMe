@@ -19,6 +19,7 @@ namespace RepairMe
         [NonSerialized] public readonly string BarConditionWindow = "repairme-bar-condition";
         public bool BarConditionEnabled = true;
         public Vector2 BarConditionSize = new(470, 2);
+        public int BarConditionOrientation = 0;
 
         public Vector4 BarConditionOkColor = new(0.5f, 0.9f, 0, 1);
         public Vector4 BarConditionOkBackground = new(0.29f, 0.29f, 0.29f, 0.54f);
@@ -32,6 +33,7 @@ namespace RepairMe
         [NonSerialized] public readonly string BarSpiritbondWindow = "repairme-bar-spiritbond";
         public bool BarSpiritbondEnabled = false;
         public Vector2 BarSpiritbondSize = new(470, 2);
+        public int BarSpiritbondOrientation = 0;
 
         public Vector4 BarSpiritbondProgressColor = new(0.12f, 0.81f, 0.88f, 0.4f);
         public Vector4 BarSpiritbondProgressBackground = new(0.29f, 0.29f, 0.29f, 0.54f);
