@@ -24,7 +24,7 @@ namespace RepairMe
         //[PluginService][RequiredVersion("1.0")] public static ChatGui                Chat            { get; private set; } = null!;
         //[PluginService][RequiredVersion("1.0")] public static SeStringManager        SeStrings       { get; private set; } = null!;
         //[PluginService][RequiredVersion("1.0")] public static ChatHandlers           ChatHandlers    { get; private set; } = null!;
-        //[PluginService][RequiredVersion("1.0")] public static Framework              Framework       { get; private set; } = null!;
+        [PluginService][RequiredVersion("1.0")] public static Framework              Framework       { get; private set; } = null!;
         //[PluginService][RequiredVersion("1.0")] public static GameNetwork            Network         { get; private set; } = null!;
         //[PluginService][RequiredVersion("1.0")] public static Condition              Conditions      { get; private set; } = null!;
         //[PluginService][RequiredVersion("1.0")] public static KeyState               Keys            { get; private set; } = null!;

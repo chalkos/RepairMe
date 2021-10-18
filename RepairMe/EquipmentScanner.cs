@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using Dalamud.Game;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using static RepairMe.Dalamud;
 
 #if DEBUG
 using Dalamud.Logging;
@@ -37,7 +37,7 @@ namespace RepairMe
                 if (LowestConditionPercent > Condition[i])
                 {
                     LowestConditionPercent = Condition[i];
-                    LowestConditionSlot = (ushort) i;
+                    LowestConditionSlot = (ushort)i;
                 }
 
                 if (HighestSpiritbondPercent < spiritbondValues[i])
@@ -90,19 +90,28 @@ namespace RepairMe
 
             Setup();
 
-            PluginInterface.UiBuilder.Draw += GetConditionInfo;
-            ClientState.Login += ClientStateOnOnLogin;
+            Dalamud.ClientState.Login += ClientStateOnLogin;
+            Dalamud.ClientState.Logout += ClientStateOnLogout;
+            Dalamud.Framework.Update += GetConditionInfo;
         }
 
         public void Dispose()
         {
-            PluginInterface.UiBuilder.Draw -= GetConditionInfo;
-            ClientState.Login -= ClientStateOnOnLogin;
+            Dalamud.Framework.Update -= GetConditionInfo;
+            Dalamud.ClientState.Login -= ClientStateOnLogin;
+            Dalamud.ClientState.Logout -= ClientStateOnLogout;
         }
 
-        private void ClientStateOnOnLogin(object? sender, EventArgs e)
+        private void ClientStateOnLogin(object? sender, EventArgs e)
         {
             Setup();
+        }
+
+        private void ClientStateOnLogout(object? sender, EventArgs e)
+        {
+            inventoryManager = null;
+            equipmentContainer = null;
+            equipmentInventoryItem = null;
         }
 
         private void Setup()
@@ -112,7 +121,7 @@ namespace RepairMe
             equipmentInventoryItem = equipmentContainer->GetInventorySlot(0);
         }
 
-        private void GetConditionInfo()
+        private void GetConditionInfo(Framework framework)
         {
 #if DEBUG
             bm.Restart();
@@ -123,6 +132,7 @@ namespace RepairMe
 
                 var isUpdate = false;
                 var inventoryItem = equipmentInventoryItem;
+                if (inventoryItem == null) return;
                 for (var i = 0; i < EquipmentContainerSize; i++, inventoryItem++)
                 {
                     isUpdate = conditionValues[i] != inventoryItem->Condition || idValues[i] != inventoryItem->ItemID ||

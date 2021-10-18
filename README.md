@@ -19,6 +19,9 @@ Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be 
 
 ## Changelog
 
+* v1.0.0.2
+  * Fix `System.AccessViolationException` in `GetConditionInfo()`
+    * shouldn't crash on logout/disconnect anymore
 * v1.0.0.1
   * No longer version zero!
   * New config: bar orientation
