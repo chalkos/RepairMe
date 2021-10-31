@@ -24,7 +24,7 @@ namespace RepairMe
             Condition = new ushort[EquipmentScanner.EquipmentContainerSize];
             Spiritbond = new ushort[EquipmentScanner.EquipmentContainerSize];
 
-            LowestConditionPercent = 30000;
+            LowestConditionPercent = 60000;
             HighestSpiritbondPercent = 0;
             LowestConditionSlot = 0; // mandatory unconditional set
 
@@ -33,6 +33,8 @@ namespace RepairMe
                 Id[i] = idValues[i];
                 Condition[i] = conditionValues[i];
                 Spiritbond[i] = spiritbondValues[i];
+                
+                if(Id[i] == 0) continue;
 
                 if (LowestConditionPercent > Condition[i])
                 {

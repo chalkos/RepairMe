@@ -69,8 +69,9 @@ namespace RepairMe
                 }
                 else
                 {
-                    condition = eventHandler.EquipmentScannerLastEquipmentData.LowestConditionPercent;
-                    spiritbond = eventHandler.EquipmentScannerLastEquipmentData.HighestSpiritbondPercent;
+                    var e = eventHandler.EquipmentScannerLastEquipmentData;
+                    condition = e?.LowestConditionPercent ?? 100f;
+                    spiritbond = e?.HighestSpiritbondPercent ?? 0f;
                 }
 
                 longestOrientationLabel = OrientationLabels.Select(label => ImGui.CalcTextSize(label).X).Max() * 1.35f;
@@ -490,6 +491,7 @@ namespace RepairMe
         private void DrawDebugWindow()
         {
             var e = eventHandler.EquipmentScannerLastEquipmentData;
+            if (e == null) return;
 
             if (ImGui.Begin("RepairMe Debug",
                 ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.AlwaysAutoResize))
@@ -502,11 +504,11 @@ namespace RepairMe
                         ImGui.TableNextColumn();
                         ImGui.Text(i.ToString());
                         ImGui.TableNextColumn();
-                        ImGui.Text(e.Id[i].ToString());
+                        ImGui.Text(e?.Id[i].ToString());
                         ImGui.TableNextColumn();
-                        ImGui.Text((e.Condition[i] / 300f).ToString("F2"));
+                        ImGui.Text($"{(e?.Condition[i] / 300f):F2}");
                         ImGui.TableNextColumn();
-                        ImGui.Text((e.Spiritbond[i] / 100f).ToString("F2"));
+                        ImGui.Text($"{(e?.Spiritbond[i] / 100f):F2}");
                     }
 
                     ImGui.EndTable();

@@ -13,7 +13,7 @@ namespace RepairMe
         private readonly ManualResetEvent manualResetEvent;
         private const int CooldownMilliseconds = 500;
         private AtkUnitBase* addonLoading;
-        internal EquipmentData EquipmentScannerLastEquipmentData;
+        internal EquipmentData? EquipmentScannerLastEquipmentData;
         private CancellationTokenSource? eventLoopTokenSource;
 
         public bool IsActive => IsLoggedIn && !IsLoading;
