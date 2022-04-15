@@ -19,6 +19,13 @@ Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be 
 
 ## Changelog
 
+* v1.0.1.0
+  * WARNING: all bar/alert/percentages positions will be reset
+  * replaced drag&drop positioning with X/Y precise sliders
+  * widget position is now bound to resolution
+    * the plugin will remember where you positioned the widgets across different resolutions 
+    * if you change the window size/resolution you'll need to re-position everything
+      * there's also an option (bottom of config window) to copy position settings from another resolution
 * v1.0.0.5
   * set api6 (no code changes)
 * v1.0.0.4
