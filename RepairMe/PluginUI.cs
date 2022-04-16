@@ -651,7 +651,7 @@ namespace RepairMe
                 ImGui.SameLine();
                 if (ImGui.Button("reset##repairMe044.1"))
                 {
-                    position.PercentSpiritbond = new PositionProfile().PercentSpiritbond;
+                    position.BarSpiritbond = new PositionProfile().BarSpiritbond;
                     conf.Save();
                 }
 
