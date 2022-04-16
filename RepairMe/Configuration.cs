@@ -98,12 +98,15 @@ namespace RepairMe
         public string AlertConditionCriticalText = "Condition is critical";
         public Vector4 AlertConditionCriticalColor = new(1f, 1f, 1f, 1);
         public Vector4 AlertConditionCriticalBg = new(0.85f, 0.05f, 0.05f, 0.25f);
+        public bool AlertConditionLowShortcut = false;
+        public bool AlertConditionCriticalShortcut = false;
 
         // alerts - spiritbond
         public bool AlertSpiritbondFullEnabled = false;
         public string AlertSpiritbondFullText = "Spiritbond complete";
         public Vector4 AlertSpiritbondFullColor = new(0.25f, 0.9f, 0.95f, 1);
         public Vector4 AlertSpiritbondFullBg = new(1, 1, 1, 0.2f);
+        public bool AlertSpiritbondShortcut = false;
         
         // positioning
         public Dictionary<string, PositionProfile> PositionProfiles = new();

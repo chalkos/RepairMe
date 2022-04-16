@@ -4,7 +4,7 @@
         <OutputType>Library</OutputType>
         <Authors>Chalkos</Authors>
         <Title>RepairMe</Title>
-        <Version>1.0.1.4</Version>
+        <Version>1.0.1.5</Version>
         <Deterministic>true</Deterministic>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -22,6 +22,7 @@
         <OutputPath>$(AppData)\XIVLauncher\devPlugins\$(Title)\</OutputPath>
         <WarningLevel>4</WarningLevel>
         <ErrorReport>prompt</ErrorReport>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
@@ -42,7 +43,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="DalamudPackager" Version="2.1.2" />
+        <PackageReference Include="DalamudPackager" Version="2.1.5" />
+        <PackageReference Include="XivCommon" Version="4.0.0-alpha.2" />
         <Reference Include="FFXIVClientStructs">
             <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
             <Private>false</Private>

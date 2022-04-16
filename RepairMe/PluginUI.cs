@@ -6,6 +6,7 @@ using System.Numerics;
 using Dalamud.Interface;
 using Dalamud.Logging;
 using ImGuiNET;
+using XivCommon;
 
 namespace RepairMe
 {
@@ -61,10 +62,12 @@ namespace RepairMe
         private bool testingMode = true;
         private bool isDragging = false;
         private bool isDrawingFirstFrame = true;
+        private XivCommonBase xivCommon;
 
-        public PluginUi(EventHandler eventHandler)
+        public PluginUi(EventHandler eventHandler, XivCommonBase xivCommon)
         {
             this.eventHandler = eventHandler;
+            this.xivCommon = xivCommon;
         }
 
         public bool SettingsVisible
@@ -110,6 +113,7 @@ namespace RepairMe
                         TestingModeCycleDurationFloat * 100;
                     leastSpiritbond = spiritbond * 0.3f;
                     spiritbondPoints = new[] { 0f, 0.2f, 0.25f, 0.4f, 0.5f, 0f, 0.7f, 0.8f, 0.81f, 0.82f, 0.83f, 0.9f };
+                    spiritbond = 100;
                 }
                 else
                 {
@@ -144,20 +148,22 @@ namespace RepairMe
                     DrawAlert(conf.AlertConditionCriticalEnabled, conf.AlertConditionCriticalText,
                         AlertConditionCriticalWindow, AlertConditionCriticalWindowChild,
                         conf.AlertConditionCriticalColor, conf.AlertConditionCriticalBg,
-                        ref position.AlertCriticalCondition);
+                        ref position.AlertCriticalCondition,
+                        conf.AlertConditionCriticalShortcut ? ClickActionOpenRepairs : null);
 
                 // alert condition low
                 if (!conf.PositionsMigrated || UnlockedUiMode || condition <= conf.ThresholdConditionLow &&
                     condition > conf.ThresholdConditionCritical)
                     DrawAlert(conf.AlertConditionLowEnabled, conf.AlertConditionLowText, AlertConditionLowWindow,
                         AlertConditionLowWindowChild, conf.AlertConditionLowColor, conf.AlertConditionLowBg,
-                        ref position.AlertLowCondition);
+                        ref position.AlertLowCondition, conf.AlertConditionLowShortcut ? ClickActionOpenRepairs : null);
 
                 // alert spiritbond full
                 if (!conf.PositionsMigrated || UnlockedUiMode || ThresholdSpiritbondFull <= spiritbond)
-                    DrawAlert(conf.AlertSpiritbondFullEnabled, conf.AlertSpiritbondFullText,
-                        AlertSpiritbondFullWindow, AlertSpiritbondFullWindowChild,
-                        conf.AlertSpiritbondFullColor, conf.AlertSpiritbondFullBg, ref position.AlertSpiritbond);
+                    DrawAlert(conf.AlertSpiritbondFullEnabled, conf.AlertSpiritbondFullText, AlertSpiritbondFullWindow,
+                        AlertSpiritbondFullWindowChild, conf.AlertSpiritbondFullColor, conf.AlertSpiritbondFullBg,
+                        ref position.AlertSpiritbond,
+                        conf.AlertSpiritbondShortcut ? ClickActionOpenMateriaExtraction : null);
 
                 DrawSettingsWindow();
 
@@ -177,6 +183,16 @@ namespace RepairMe
             {
                 PluginLog.Error(ex, "prevented GUI crash");
             }
+        }
+
+        private void ClickActionOpenRepairs()
+        {
+            xivCommon.Functions.Chat.SendMessage("/gaction \"Repair\"");
+        }
+
+        private void ClickActionOpenMateriaExtraction()
+        {
+            xivCommon.Functions.Chat.SendMessage("/gaction \"Materia Extraction\"");
         }
 
         private void CheckDrag(ref Vector2 position)
@@ -509,18 +525,18 @@ namespace RepairMe
                         : $"{Math.Floor(extraValue.Value):F0}") + " / " + text;
 
             DrawText(percentEnabled, text, false, percentWindow, percentWindowChild,
-                percentColor, percentBg, ref percentPosition);
+                percentColor, percentBg, ref percentPosition, null);
         }
 
         private void DrawAlert(bool alertEnabled, string text, string alertWindow, string alertWindowChild,
-            Vector4 alertColor, Vector4 alertBg, ref Vector2 alertPosition)
+            Vector4 alertColor, Vector4 alertBg, ref Vector2 alertPosition, Action? clickAction)
         {
             DrawText(alertEnabled, text, true, alertWindow, alertWindowChild,
-                alertColor, alertBg, ref alertPosition);
+                alertColor, alertBg, ref alertPosition, clickAction);
         }
 
         private void DrawText(bool enabled, string text, bool isAlert, string window, string windowChild, Vector4 color,
-            Vector4 bg, ref Vector2 position)
+            Vector4 bg, ref Vector2 position, Action? clickAction)
         {
             if (conf.PositionsMigrated && !enabled) return;
 
@@ -531,20 +547,38 @@ namespace RepairMe
                 MigratePositions(ref position);
                 CheckDrag(ref position);
 
-                var childSize = ImGui.CalcTextSize(text);
+                var childSize = ImGui.CalcTextSize(text) + Vector2.One * 2;
                 childSize.X += ProgressLabelPadding * 2;
 
                 ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 5f);
                 ImGui.PushStyleColor(ImGuiCol.ChildBg, bg);
 
-                if (ImGui.BeginChild(windowChild, childSize, false, ImGuiWindowFlags.NoInputs))
+                if (ImGui.BeginChild(windowChild, childSize, false,
+                        clickAction != null ? ImGuiWindowFlags.None : ImGuiWindowFlags.NoInputs))
                 {
                     var pos = ImGui.GetCursorPos();
                     pos.X += ProgressLabelPadding;
+
+                    bool hovering = !UnlockedUiMode && clickAction != null && ImGui.IsWindowHovered();
+                    bool clicking = hovering && ImGui.IsMouseDown(ImGuiMouseButton.Left);
+                    bool clicked = hovering && ImGui.IsMouseReleased(ImGuiMouseButton.Left);
+
+                    if (hovering)
+                    {
+                        ImGui.SetCursorPos(pos + Vector2.One * (clicking || clicked ? -1 : 1));
+                        ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0, 0, 0, color.W));
+                        ImGui.TextUnformatted(text);
+                        ImGui.PopStyleColor();
+                    }
+
                     ImGui.SetCursorPos(pos);
                     ImGui.PushStyleColor(ImGuiCol.Text, color);
                     ImGui.TextUnformatted(text);
                     ImGui.PopStyleColor();
+
+                    if (!UnlockedUiMode && clickAction != null && ImGui.IsWindowHovered() &&
+                        ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+                        clickAction.Invoke();
 
                     ImGui.EndChild();
                 }
@@ -604,7 +638,17 @@ namespace RepairMe
                 if (ImGui.Checkbox("Show Alert when Low##repairMe006", ref conf.AlertConditionLowEnabled))
                     conf.Save();
 
+                ImGui.SameLine();
+                if (ImGui.Checkbox("Clicking alert opens Repairs window##repairMe006.1",
+                        ref conf.AlertConditionLowShortcut))
+                    conf.Save();
+
                 if (ImGui.Checkbox("Show Alert when Critical##repairMe007", ref conf.AlertConditionCriticalEnabled))
+                    conf.Save();
+
+                ImGui.SameLine();
+                if (ImGui.Checkbox("Clicking alert opens Repairs window##repairMe007.1",
+                        ref conf.AlertConditionCriticalShortcut))
                     conf.Save();
 
                 ImGui.Spacing();
@@ -744,6 +788,11 @@ namespace RepairMe
 
 
                 if (ImGui.Checkbox("Show Alert when Full##repairMe028", ref conf.AlertSpiritbondFullEnabled))
+                    conf.Save();
+
+                ImGui.SameLine();
+                if (ImGui.Checkbox("Clicking alert opens Materia Extraction window##repairMe028.1",
+                        ref conf.AlertSpiritbondShortcut))
                     conf.Save();
 
 

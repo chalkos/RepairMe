@@ -19,6 +19,8 @@ Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be 
 
 ## Changelog
 
+* v1.0.1.5
+  * new option: clicking condition/spiritbond alerts opens repair/extract materia UI
 * v1.0.1.4
   * bugfix: checkboxes to hide decimal and percentage are working correctly now
 * v1.0.1.3
