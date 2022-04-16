@@ -10,6 +10,7 @@ namespace RepairMe
 {
     public unsafe class EventHandler : IDisposable
     {
+        private Configuration conf => Configuration.GetOrLoad();
         private readonly EquipmentScanner equipmentScanner;
         private readonly ManualResetEvent manualResetEvent;
         private const int CooldownMilliseconds = 500;
@@ -17,12 +18,14 @@ namespace RepairMe
         internal EquipmentData? EquipmentScannerLastEquipmentData;
         private CancellationTokenSource? eventLoopTokenSource;
 
-        public bool IsActive => IsLoggedIn && !IsLoading && !(
-            Conditions[ConditionFlag.Occupied]
-            || Conditions[ConditionFlag.OccupiedInCutSceneEvent]
-            || Conditions[ConditionFlag.OccupiedSummoningBell]
-            || Conditions[ConditionFlag.OccupiedInQuestEvent]
-            || Conditions[ConditionFlag.OccupiedInEvent]
+        public bool IsActive => IsLoggedIn && !IsLoading && (
+            !conf.HideUiWhenOccupied || !(
+                Conditions[ConditionFlag.Occupied]
+                || Conditions[ConditionFlag.OccupiedInCutSceneEvent]
+                || Conditions[ConditionFlag.OccupiedSummoningBell]
+                || Conditions[ConditionFlag.OccupiedInQuestEvent]
+                || Conditions[ConditionFlag.OccupiedInEvent]
+            )
         );
 
         private bool IsLoggedIn => ClientState.IsLoggedIn;

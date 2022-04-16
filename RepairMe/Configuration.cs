@@ -44,6 +44,8 @@ namespace RepairMe
 
         public bool PositionsMigrated = true;
 
+        public bool HideUiWhenOccupied = true;
+
         // thresholds stuff
         public int ThresholdConditionLow = 50;
         public int ThresholdConditionCritical = 30;

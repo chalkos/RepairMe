@@ -615,6 +615,9 @@ namespace RepairMe
             ImGui.SameLine();
             if (ImGui.Checkbox("Testing mode##repairMe002", ref testingMode)) conf.Save();
 
+            ImGui.SameLine();
+            if (ImGui.Checkbox("Hide when player is occupied##repairMe002.1", ref conf.HideUiWhenOccupied)) conf.Save();
+
             ImGui.Spacing();
 
             if (ImGui.CollapsingHeader("Condition settings##repairMe003", ImGuiTreeNodeFlags.DefaultOpen))
