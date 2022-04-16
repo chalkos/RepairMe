@@ -14,6 +14,7 @@ namespace RepairMe
         public readonly uint[] Id;
         public readonly ushort[] Condition;
         public readonly ushort[] Spiritbond;
+        public readonly float[] SpiritbondPercents;
         public readonly float LowestConditionPercent;
         public readonly float HighestSpiritbondPercent;
         public readonly ushort LowestConditionSlot;
@@ -23,6 +24,7 @@ namespace RepairMe
             Id = new uint[EquipmentScanner.EquipmentContainerSize];
             Condition = new ushort[EquipmentScanner.EquipmentContainerSize];
             Spiritbond = new ushort[EquipmentScanner.EquipmentContainerSize];
+            SpiritbondPercents = new float[EquipmentScanner.EquipmentContainerSize];
 
             LowestConditionPercent = 60000;
             HighestSpiritbondPercent = 0;
@@ -33,6 +35,7 @@ namespace RepairMe
                 Id[i] = idValues[i];
                 Condition[i] = conditionValues[i];
                 Spiritbond[i] = spiritbondValues[i];
+                SpiritbondPercents[i] = spiritbondValues[i] / 10000f;
                 
                 if(Id[i] == 0) continue;
 

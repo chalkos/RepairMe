@@ -62,10 +62,12 @@ namespace RepairMe
 
         // bar - spiritbond
         public bool BarSpiritbondEnabled = false;
+        public bool BarSpiritbondShowAllItems = false;
         public Vector2 BarSpiritbondSize = new(470, 2);
         public int BarSpiritbondOrientation = 0;
 
         public Vector4 BarSpiritbondProgressColor = new(0.12f, 0.81f, 0.88f, 0.4f);
+        public Vector4 BarSpiritbondPointsColor = new(0.9f, 0.7f, 0, 1);
         public Vector4 BarSpiritbondProgressBackground = new(0.29f, 0.29f, 0.29f, 0.54f);
         public Vector4 BarSpiritbondFullColor = new(1, 1, 1, 1f);
         public Vector4 BarSpiritbondFullBackground = new(0.29f, 0.29f, 0.29f, 0.54f);

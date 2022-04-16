@@ -27,6 +27,7 @@ namespace RepairMe
         private const int ProgressLabelPadding = 5;
         private const int TestingModeCycleDurationInt = 15;
         private const float TestingModeCycleDurationFloat = TestingModeCycleDurationInt;
+        private readonly float[] EmptyPointsArray = Array.Empty<float>();
 
         // constants migrated from config
         private readonly string BarConditionWindow = "repairme-bar-condition";
@@ -55,6 +56,7 @@ namespace RepairMe
         private bool UnlockedUiMode => UnlockedUiModeCheckbox && SettingsVisible;
         private float condition = 100;
         private float spiritbond = 0;
+        private float[] spiritbondPoints = Array.Empty<float>();
         private bool testingMode = true;
         private bool isDragging = false;
         private bool isDrawingFirstFrame = true;
@@ -105,12 +107,14 @@ namespace RepairMe
                         TestingModeCycleDurationFloat * 100;
                     spiritbond = (DateTime.Now.Second % TestingModeCycleDurationInt + 1) /
                         TestingModeCycleDurationFloat * 100;
+                    spiritbondPoints = new[] { 0f, 0.2f, 0.25f, 0.4f, 0.5f, 0f, 0.7f, 0.8f, 0.81f, 0.82f, 0.83f, 0.9f };
                 }
                 else
                 {
                     var e = eventHandler.EquipmentScannerLastEquipmentData;
                     condition = e?.LowestConditionPercent ?? 100f;
                     spiritbond = e?.HighestSpiritbondPercent ?? 0f;
+                    spiritbondPoints = e?.SpiritbondPercents ?? EmptyPointsArray;
                 }
 
                 longestOrientationLabel = OrientationLabels.Select(label => ImGui.CalcTextSize(label).X).Max() * 1.35f;
@@ -270,21 +274,30 @@ namespace RepairMe
                         conf.BarConditionOrientation,
                         conf.BarConditionSize,
                         conf.BarConditionCriticalColor,
-                        conf.BarConditionCriticalBackground
+                        conf.BarConditionCriticalBackground,
+                        false,
+                        EmptyPointsArray,
+                        conf.BarConditionCriticalColor
                     );
                 else if (condition <= conf.ThresholdConditionLow)
                     ProgressBar(condition / 100f,
                         conf.BarConditionOrientation,
                         conf.BarConditionSize,
                         conf.BarConditionLowColor,
-                        conf.BarConditionLowBackground
+                        conf.BarConditionLowBackground,
+                        false,
+                        EmptyPointsArray,
+                        conf.BarConditionLowColor
                     );
                 else
                     ProgressBar(condition / 100f,
                         conf.BarConditionOrientation,
                         conf.BarConditionSize,
                         conf.BarConditionOkColor,
-                        conf.BarConditionOkBackground
+                        conf.BarConditionOkBackground,
+                        false,
+                        EmptyPointsArray,
+                        conf.BarConditionOkColor
                     );
             }
 
@@ -292,7 +305,8 @@ namespace RepairMe
             PopWindowEditingStyle();
         }
 
-        private void ProgressBar(float progress, int orientation, Vector2 size, Vector4 fgColor, Vector4 bgColor)
+        private void ProgressBar(float progress, int orientation, Vector2 size, Vector4 fgColor, Vector4 bgColor,
+            bool showPoints, float[] points, Vector4 pointsColor)
         {
             var pointTopLeft = ImGui.GetCursorScreenPos();
 
@@ -306,7 +320,7 @@ namespace RepairMe
 
             switch (orientation)
             {
-                case 0: // left to right
+                default: // also case 0: left to right
                     bdl.PushClipRect(
                         pointTopLeft,
                         new Vector2(
@@ -348,15 +362,6 @@ namespace RepairMe
                         )
                     );
                     break;
-                default:
-                    bdl.PushClipRect(
-                        pointTopLeft,
-                        new Vector2(
-                            pointTopLeft.X + size.X * progress,
-                            pointTopLeft.Y + size.Y
-                        )
-                    );
-                    break;
             }
 
             bdl.AddRectFilled(
@@ -365,6 +370,76 @@ namespace RepairMe
                 ImGui.GetColorU32(fgColor),
                 5);
             bdl.PopClipRect();
+
+            if (!showPoints) return;
+
+            float pointSize = 1;
+            for (int i = 0; i < points.Length; i++)
+            {
+                if (progress <= points[i] || i == 5)
+                    continue;
+
+                switch (orientation)
+                {
+                    default: // also case 0: left to right
+
+                        bdl.PushClipRect(
+                            new Vector2(
+                                pointTopLeft.X + size.X * points[i],
+                                pointTopLeft.Y
+                            ),
+                            new Vector2(
+                                pointTopLeft.X + size.X * points[i] + pointSize,
+                                pointTopLeft.Y + size.Y
+                            )
+                        );
+
+                        break;
+                    case 1: // right to left
+                        bdl.PushClipRect(
+                            new Vector2(
+                                pointTopLeft.X + size.X * (1 - points[i]),
+                                pointTopLeft.Y
+                            ),
+                            new Vector2(
+                                pointTopLeft.X + size.X * (1 - points[i]) - pointSize,
+                                pointTopLeft.Y + size.Y
+                            )
+                        );
+                        break;
+                    case 2: // top to bottom
+                        bdl.PushClipRect(
+                            new Vector2(
+                                pointTopLeft.X,
+                                pointTopLeft.Y + size.Y * points[i]
+                            ),
+                            new Vector2(
+                                pointTopLeft.X + size.X,
+                                pointTopLeft.Y + size.Y * points[i] + pointSize
+                            )
+                        );
+                        break;
+                    case 3: // bottom to top
+                        bdl.PushClipRect(
+                            new Vector2(
+                                pointTopLeft.X,
+                                pointTopLeft.Y + size.Y * (1 - points[i])
+                            ),
+                            new Vector2(
+                                pointTopLeft.X + size.X,
+                                pointTopLeft.Y + size.Y * (1 - points[i]) - pointSize
+                            )
+                        );
+                        break;
+                }
+
+                bdl.AddRectFilled(
+                    pointTopLeft,
+                    new Vector2(pointTopLeft.X + size.X, pointTopLeft.Y + size.Y),
+                    ImGui.GetColorU32(pointsColor),
+                    5);
+                bdl.PopClipRect();
+            }
         }
 
         private void DrawSpiritbondBar()
@@ -386,14 +461,20 @@ namespace RepairMe
                         conf.BarSpiritbondOrientation,
                         conf.BarSpiritbondSize,
                         conf.BarSpiritbondProgressColor,
-                        conf.BarSpiritbondProgressBackground
+                        conf.BarSpiritbondProgressBackground,
+                        conf.BarSpiritbondShowAllItems,
+                        spiritbondPoints,
+                        conf.BarSpiritbondPointsColor
                     );
                 else
                     ProgressBar(spiritbond / 100f,
                         conf.BarSpiritbondOrientation,
                         conf.BarSpiritbondSize,
                         conf.BarSpiritbondFullColor,
-                        conf.BarSpiritbondFullBackground
+                        conf.BarSpiritbondFullBackground,
+                        conf.BarSpiritbondShowAllItems,
+                        spiritbondPoints,
+                        conf.BarSpiritbondPointsColor
                     );
             }
 
@@ -576,7 +657,7 @@ namespace RepairMe
 
                 ImGui.Spacing();
                 ImGui.Text("Alert messages");
-                
+
                 if (ImGui.InputTextWithHint("Alert Low Message##repairMe011", "", ref conf.AlertConditionLowText,
                         AlertMessageMaximumLength)) conf.Save();
                 if (ImGui.InputTextWithHint("Alert Critical Message##repairMe012", "",
@@ -611,6 +692,10 @@ namespace RepairMe
                 ImGui.SetNextItemWidth(longestOrientationLabel);
                 if (ImGui.Combo("Orientation##repairMe026.2", ref conf.BarSpiritbondOrientation,
                         OrientationLabels, OrientationSize))
+                    conf.Save();
+
+                ImGui.SameLine();
+                if (ImGui.Checkbox("Show all items in bar##repairMe026.3", ref conf.BarSpiritbondShowAllItems))
                     conf.Save();
 
                 if (ImGui.Checkbox("Show Percentage##repairMe027", ref conf.PercentSpiritbondEnabled))
@@ -665,12 +750,12 @@ namespace RepairMe
 
                 ImGui.Spacing();
                 ImGui.Text("Alert messages");
-                
+
                 if (ImGui.InputTextWithHint("Alert Full Message##repairMe030", "", ref conf.AlertSpiritbondFullText,
                         AlertMessageMaximumLength)) conf.Save();
 
                 ImGui.Spacing();
-                
+
                 ImGui.Text("Colors - They support transparency, including becoming fully transparent");
                 if (ImGui.BeginTable("spiritbond-colors", 2))
                 {
@@ -678,6 +763,8 @@ namespace RepairMe
                     ColorPicker("Percentage Background##repairMe032", ref conf.PercentSpiritbondBg);
                     ColorPicker("Bar Color##repairMe033", ref conf.BarSpiritbondProgressColor);
                     ColorPicker("Bar Background##repairMe034", ref conf.BarSpiritbondProgressBackground);
+                    ColorPicker("Other items color##repairMe039", ref conf.BarSpiritbondPointsColor);
+                    ImGui.TableNextColumn();
                     ColorPicker("Bar Full Color##repairMe035", ref conf.BarSpiritbondFullColor);
                     ColorPicker("Bar Full Background##repairMe036", ref conf.BarSpiritbondFullBackground);
                     ColorPicker("Alert Full Color##repairMe037", ref conf.AlertSpiritbondFullColor);
