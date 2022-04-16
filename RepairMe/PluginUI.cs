@@ -733,10 +733,10 @@ namespace RepairMe
                 if (ImGui.Checkbox("Show Percentage##repairMe027", ref conf.PercentSpiritbondEnabled))
                     conf.Save();
                 ImGui.SameLine();
-                if (ImGui.Checkbox("Show decimals##repairMe005.1", ref conf.PercentSpiritbondShowDecimals))
+                if (ImGui.Checkbox("Show decimals##repairMe027.1", ref conf.PercentSpiritbondShowDecimals))
                     conf.Save();
                 ImGui.SameLine();
-                if (ImGui.Checkbox("Show % sign##repairMe005.2", ref conf.PercentSpiritbondShowPercent))
+                if (ImGui.Checkbox("Show % sign##repairMe027.2", ref conf.PercentSpiritbondShowPercent))
                     conf.Save();
                 if (ImGui.Checkbox("Also show least spiritbonded item##repairMe005.3",
                         ref conf.PercentSpiritbondShowMinMax))
