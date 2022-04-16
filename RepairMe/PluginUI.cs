@@ -281,7 +281,8 @@ namespace RepairMe
                         conf.BarConditionCriticalBackground,
                         false,
                         EmptyPointsArray,
-                        conf.BarConditionCriticalColor
+                        conf.BarConditionCriticalColor,
+                        conf.BarConditionRounding
                     );
                 else if (condition <= conf.ThresholdConditionLow)
                     ProgressBar(condition / 100f,
@@ -291,7 +292,8 @@ namespace RepairMe
                         conf.BarConditionLowBackground,
                         false,
                         EmptyPointsArray,
-                        conf.BarConditionLowColor
+                        conf.BarConditionLowColor,
+                        conf.BarConditionRounding
                     );
                 else
                     ProgressBar(condition / 100f,
@@ -301,7 +303,8 @@ namespace RepairMe
                         conf.BarConditionOkBackground,
                         false,
                         EmptyPointsArray,
-                        conf.BarConditionOkColor
+                        conf.BarConditionOkColor,
+                        conf.BarConditionRounding
                     );
             }
 
@@ -310,7 +313,7 @@ namespace RepairMe
         }
 
         private void ProgressBar(float progress, int orientation, Vector2 size, Vector4 fgColor, Vector4 bgColor,
-            bool showPoints, float[] points, Vector4 pointsColor)
+            bool showPoints, float[] points, Vector4 pointsColor, float rounding)
         {
             var pointTopLeft = ImGui.GetCursorScreenPos();
 
@@ -320,7 +323,7 @@ namespace RepairMe
                 pointTopLeft,
                 new Vector2(pointTopLeft.X + size.X, pointTopLeft.Y + size.Y),
                 ImGui.GetColorU32(bgColor),
-                5);
+                rounding);
 
             switch (orientation)
             {
@@ -372,7 +375,7 @@ namespace RepairMe
                 pointTopLeft,
                 new Vector2(pointTopLeft.X + size.X, pointTopLeft.Y + size.Y),
                 ImGui.GetColorU32(fgColor),
-                5);
+                rounding);
             bdl.PopClipRect();
 
             if (!showPoints) return;
@@ -441,7 +444,7 @@ namespace RepairMe
                     pointTopLeft,
                     new Vector2(pointTopLeft.X + size.X, pointTopLeft.Y + size.Y),
                     ImGui.GetColorU32(pointsColor),
-                    5);
+                    rounding);
                 bdl.PopClipRect();
             }
         }
@@ -468,7 +471,8 @@ namespace RepairMe
                         conf.BarSpiritbondProgressBackground,
                         conf.BarSpiritbondShowAllItems,
                         spiritbondPoints,
-                        conf.BarSpiritbondPointsColor
+                        conf.BarSpiritbondPointsColor,
+                        conf.BarSpiritbondRounding
                     );
                 else
                     ProgressBar(spiritbond / 100f,
@@ -478,7 +482,8 @@ namespace RepairMe
                         conf.BarSpiritbondFullBackground,
                         conf.BarSpiritbondShowAllItems,
                         spiritbondPoints,
-                        conf.BarSpiritbondPointsColor
+                        conf.BarSpiritbondPointsColor,
+                        conf.BarSpiritbondRounding
                     );
             }
 
@@ -657,8 +662,11 @@ namespace RepairMe
                 ImGui.Spacing();
                 ImGui.Text("Size");
 
-                ImGui.PushItemWidth(80);
                 if (ImGuiCoordinatesInput("Bar size##repairMe008", ref conf.BarConditionSize))
+                    conf.Save();
+                ImGui.PushItemWidth(80);
+                if (ImGui.DragFloat("Bar rounding##repairMe008.1", ref conf.BarConditionRounding, 1f, 0, float.MaxValue,
+                        "%.0f"))
                     conf.Save();
                 ImGui.PopItemWidth();
 
@@ -781,6 +789,11 @@ namespace RepairMe
                 ImGui.Text("Size");
                 if (ImGuiCoordinatesInput("Bar size##repairMe029", ref conf.BarSpiritbondSize))
                     conf.Save();
+                ImGui.PushItemWidth(80);
+                if (ImGui.DragFloat("Bar rounding##repairMe029.1", ref conf.BarSpiritbondRounding, 1f, 0,
+                        float.MaxValue, "%.0f"))
+                    conf.Save();
+                ImGui.PopItemWidth();
 
                 ImGui.Spacing();
                 ImGui.Text("Alert messages");

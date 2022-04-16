@@ -50,6 +50,7 @@ namespace RepairMe
 
         // bar - condition
         public bool BarConditionEnabled = true;
+        public float BarConditionRounding = 5f;
         public Vector2 BarConditionSize = new(470, 2);
         public int BarConditionOrientation = 0;
 
@@ -62,6 +63,7 @@ namespace RepairMe
 
         // bar - spiritbond
         public bool BarSpiritbondEnabled = false;
+        public float BarSpiritbondRounding = 5f;
         public bool BarSpiritbondShowAllItems = false;
         public Vector2 BarSpiritbondSize = new(470, 2);
         public int BarSpiritbondOrientation = 0;
