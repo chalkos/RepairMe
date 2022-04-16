@@ -128,12 +128,13 @@ namespace RepairMe
                 // percent condition
                 DrawPercent(conf.PercentConditionEnabled, condition, PercentConditionWindow,
                     PercentConditionWindowChild, conf.PercentConditionColor, conf.PercentConditionBg,
-                    ref position.PercentCondition);
+                    ref position.PercentCondition, conf.PercentConditionShowPercent, conf.PercentConditionShowDecimals);
 
                 // percent spiritbond
                 DrawPercent(conf.PercentSpiritbondEnabled, spiritbond, PercentSpiritbondWindow,
                     PercentSpiritbondWindowChild, conf.PercentSpiritbondColor, conf.PercentSpiritbondBg,
-                    ref position.PercentSpiritbond);
+                    ref position.PercentSpiritbond, conf.PercentSpiritbondShowPercent,
+                    conf.PercentSpiritbondShowDecimals);
 
                 // alert condition critical
                 if (!conf.PositionsMigrated || UnlockedUiMode || condition <= conf.ThresholdConditionCritical)
@@ -483,9 +484,14 @@ namespace RepairMe
         }
 
         private void DrawPercent(bool percentEnabled, float percent, string percentWindow, string percentWindowChild,
-            Vector4 percentColor, Vector4 percentBg, ref Vector2 percentPosition)
+            Vector4 percentColor, Vector4 percentBg, ref Vector2 percentPosition, bool showSign, bool showDecimals)
         {
-            DrawText(percentEnabled, $"{percent:F2}%", false, percentWindow, percentWindowChild,
+            string text =
+                showSign && showDecimals ? $"{percent:F2}%"
+                : showSign ? $"{percent:F0}%"
+                : showDecimals ? $"{percent:F2}"
+                : $"{percent:F0}";
+            DrawText(percentEnabled, text, false, percentWindow, percentWindowChild,
                 percentColor, percentBg, ref percentPosition);
         }
 
@@ -570,6 +576,12 @@ namespace RepairMe
                     conf.Save();
 
                 if (ImGui.Checkbox("Show Percentage##repairMe005", ref conf.PercentConditionEnabled))
+                    conf.Save();
+                ImGui.SameLine();
+                if (ImGui.Checkbox("Show decimals##repairMe005.1", ref conf.PercentConditionShowDecimals))
+                    conf.Save();
+                ImGui.SameLine();
+                if (ImGui.Checkbox("Show % sign##repairMe005.2", ref conf.PercentConditionShowPercent))
                     conf.Save();
 
                 if (ImGui.Checkbox("Show Alert when Low##repairMe006", ref conf.AlertConditionLowEnabled))
@@ -699,6 +711,12 @@ namespace RepairMe
                     conf.Save();
 
                 if (ImGui.Checkbox("Show Percentage##repairMe027", ref conf.PercentSpiritbondEnabled))
+                    conf.Save();
+                ImGui.SameLine();
+                if (ImGui.Checkbox("Show decimals##repairMe005.1", ref conf.PercentSpiritbondShowDecimals))
+                    conf.Save();
+                ImGui.SameLine();
+                if (ImGui.Checkbox("Show % sign##repairMe005.2", ref conf.PercentSpiritbondShowPercent))
                     conf.Save();
 
                 if (ImGui.Checkbox("Show Alert when Full##repairMe028", ref conf.AlertSpiritbondFullEnabled))

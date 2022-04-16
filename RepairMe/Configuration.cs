@@ -74,11 +74,15 @@ namespace RepairMe
 
         // percent labels - condition
         public bool PercentConditionEnabled = true;
+        public bool PercentConditionShowPercent = true;
+        public bool PercentConditionShowDecimals = false;
         public Vector4 PercentConditionColor = new(1, 1, 1, 1);
         public Vector4 PercentConditionBg = new(1, 1, 1, 0.2f);
 
         // percent labels - spiritbond
         public bool PercentSpiritbondEnabled = false;
+        public bool PercentSpiritbondShowPercent = true;
+        public bool PercentSpiritbondShowDecimals = false;
         public Vector4 PercentSpiritbondColor = new(1, 1, 1, 1);
         public Vector4 PercentSpiritbondBg = new(1, 1, 1, 0.2f);
 
