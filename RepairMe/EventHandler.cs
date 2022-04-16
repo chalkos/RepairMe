@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using static RepairMe.Dalamud;
@@ -16,7 +17,14 @@ namespace RepairMe
         internal EquipmentData? EquipmentScannerLastEquipmentData;
         private CancellationTokenSource? eventLoopTokenSource;
 
-        public bool IsActive => IsLoggedIn && !IsLoading;
+        public bool IsActive => IsLoggedIn && !IsLoading && !(
+            Conditions[ConditionFlag.Occupied]
+            || Conditions[ConditionFlag.OccupiedInCutSceneEvent]
+            || Conditions[ConditionFlag.OccupiedSummoningBell]
+            || Conditions[ConditionFlag.OccupiedInQuestEvent]
+            || Conditions[ConditionFlag.OccupiedInEvent]
+        );
+
         private bool IsLoggedIn => ClientState.IsLoggedIn;
 
         private bool IsLoading
