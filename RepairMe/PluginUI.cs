@@ -113,7 +113,6 @@ namespace RepairMe
                         TestingModeCycleDurationFloat * 100;
                     leastSpiritbond = spiritbond * 0.3f;
                     spiritbondPoints = new[] { 0f, 0.2f, 0.25f, 0.4f, 0.5f, 0f, 0.7f, 0.8f, 0.81f, 0.82f, 0.83f, 0.9f };
-                    spiritbond = 100;
                 }
                 else
                 {
