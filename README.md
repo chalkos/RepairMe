@@ -19,6 +19,12 @@ Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be 
 
 ## Changelog
 
+* v1.0.1.2
+  * If coming from v1.0.0.5 or below, your position settings will not be reset (apologies and thanks to the beta testers)
+  * Drag&drop is now supported again
+  * The condition alerts (low/critical) can again be positioned separately
+  * Attempt to force alerts/bars/percentages to display inside the game window
+  * Improved readability of config window
 * v1.0.1.1
   * attempt to make it clear how to move things around
 * v1.0.1.0

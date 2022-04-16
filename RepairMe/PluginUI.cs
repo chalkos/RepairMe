@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Numerics;
+using Dalamud.Interface;
 using Dalamud.Logging;
 using ImGuiNET;
 
@@ -18,7 +19,7 @@ namespace RepairMe
 
         private static readonly int OrientationSize = OrientationLabels.Length;
         private float longestOrientationLabel;
-        
+
         // position profile combo
         private int selectedProfileCombo = -1;
 
@@ -43,8 +44,6 @@ namespace RepairMe
         private readonly uint AlertMessageMaximumLength = 1000;
         private readonly int ThresholdSpiritbondFull = 100;
 
-        private readonly Vector4 initialBorderColor;
-
         // reference fields
         private Configuration conf => Configuration.GetOrLoad();
         private PositionProfile position;
@@ -52,16 +51,17 @@ namespace RepairMe
         private readonly EventHandler eventHandler;
 
         // non-config ui fields
-        private bool highlightCheckbox = false;
-        private bool highlightMode => highlightCheckbox && SettingsVisible;
+        private bool UnlockedUiModeCheckbox = false;
+        private bool UnlockedUiMode => UnlockedUiModeCheckbox && SettingsVisible;
         private float condition = 100;
         private float spiritbond = 0;
         private bool testingMode = true;
+        private bool isDragging = false;
+        private bool isDrawingFirstFrame = true;
 
         public PluginUi(EventHandler eventHandler)
         {
             this.eventHandler = eventHandler;
-            initialBorderColor = ImGui.GetStyle().Colors[(int)ImGuiCol.Border];
         }
 
         public bool SettingsVisible
@@ -124,37 +124,46 @@ namespace RepairMe
                 // percent condition
                 DrawPercent(conf.PercentConditionEnabled, condition, PercentConditionWindow,
                     PercentConditionWindowChild, conf.PercentConditionColor, conf.PercentConditionBg,
-                    position.PercentCondition);
+                    ref position.PercentCondition);
 
                 // percent spiritbond
                 DrawPercent(conf.PercentSpiritbondEnabled, spiritbond, PercentSpiritbondWindow,
                     PercentSpiritbondWindowChild, conf.PercentSpiritbondColor, conf.PercentSpiritbondBg,
-                    position.PercentSpiritbond);
+                    ref position.PercentSpiritbond);
 
                 // alert condition critical
-                if (highlightMode || condition <= conf.ThresholdConditionCritical)
+                if (!conf.PositionsMigrated || UnlockedUiMode || condition <= conf.ThresholdConditionCritical)
                     DrawAlert(conf.AlertConditionCriticalEnabled, conf.AlertConditionCriticalText,
                         AlertConditionCriticalWindow, AlertConditionCriticalWindowChild,
-                        conf.AlertConditionCriticalColor, conf.AlertConditionCriticalBg, position.AlertCondition);
+                        conf.AlertConditionCriticalColor, conf.AlertConditionCriticalBg,
+                        ref position.AlertCriticalCondition);
 
                 // alert condition low
-                if (highlightMode || condition <= conf.ThresholdConditionLow &&
+                if (!conf.PositionsMigrated || UnlockedUiMode || condition <= conf.ThresholdConditionLow &&
                     condition > conf.ThresholdConditionCritical)
                     DrawAlert(conf.AlertConditionLowEnabled, conf.AlertConditionLowText, AlertConditionLowWindow,
                         AlertConditionLowWindowChild, conf.AlertConditionLowColor, conf.AlertConditionLowBg,
-                        position.AlertCondition);
+                        ref position.AlertLowCondition);
 
                 // alert spiritbond full
-                if (highlightMode || ThresholdSpiritbondFull <= spiritbond)
+                if (!conf.PositionsMigrated || UnlockedUiMode || ThresholdSpiritbondFull <= spiritbond)
                     DrawAlert(conf.AlertSpiritbondFullEnabled, conf.AlertSpiritbondFullText,
                         AlertSpiritbondFullWindow, AlertSpiritbondFullWindowChild,
-                        conf.AlertSpiritbondFullColor, conf.AlertSpiritbondFullBg, position.AlertSpiritbond);
+                        conf.AlertSpiritbondFullColor, conf.AlertSpiritbondFullBg, ref position.AlertSpiritbond);
 
                 DrawSettingsWindow();
 
 #if DEBUG
                 DrawDebugWindow();
 #endif
+
+                if (isDrawingFirstFrame && !conf.PositionsMigrated)
+                {
+                    conf.PositionsMigrated = true;
+                    conf.Save();
+                }
+
+                isDrawingFirstFrame = false;
             }
             catch (Exception ex)
             {
@@ -162,20 +171,56 @@ namespace RepairMe
             }
         }
 
+        private void CheckDrag(ref Vector2 position)
+        {
+            // https://github.com/UnknownX7/QoLBar/blob/f73515daf812058d0af58cdbd0942249474e9cf8/UI/BarUI.cs
+
+            if (isDrawingFirstFrame) return;
+
+            var dragging = !isDragging
+                ? ImGui.IsWindowFocused() && ImGui.IsWindowHovered() && !ImGui.IsMouseClicked(ImGuiMouseButton.Left) &&
+                  ImGui.IsMouseDragging(ImGuiMouseButton.Left, 5)
+                : isDragging && !ImGui.IsMouseReleased(ImGuiMouseButton.Left);
+
+            // Began dragging
+            if (dragging && dragging != isDragging)
+            {
+                isDragging = true;
+            }
+
+            // is dragging current window
+            if (isDragging && ImGui.IsWindowFocused())
+            {
+                var vp = ImGuiHelpers.MainViewport.Size;
+
+                var delta = ImGui.GetMouseDragDelta(ImGuiMouseButton.Left, 0);
+                ImGui.ResetMouseDragDelta();
+                position.X += delta.X;
+                position.Y += delta.Y;
+            }
+
+            // Stopped dragging
+            if (!dragging && dragging != isDragging)
+            {
+                isDragging = false;
+                conf.Save();
+            }
+        }
 
         private ImGuiWindowFlags PrepareWindow(Vector2 position)
         {
             var wFlags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse |
                          ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize |
-                         ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoDocking |
-                         ImGuiWindowFlags.NoInputs;
+                         ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoDocking;
 
-            ImGui.SetNextWindowPos(ImGui.GetMainViewport().Pos + position);
+            ImGuiHelpers.ForceNextWindowMainViewport();
 
-            if (highlightMode) return wFlags;
+            if (conf.PositionsMigrated && !isDragging)
+                ImGui.SetNextWindowPos(ImGui.GetMainViewport().Pos + position);
 
-            wFlags |= ImGuiWindowFlags.NoBackground;
-            //ImGui.SetWindowPos(windowName, windowPos);
+            if (UnlockedUiMode) return wFlags;
+
+            wFlags |= ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoBackground;
 
             return wFlags;
         }
@@ -208,7 +253,7 @@ namespace RepairMe
 
         private void DrawConditionBar()
         {
-            if (!conf.BarConditionEnabled) return;
+            if (conf.PositionsMigrated && !conf.BarConditionEnabled) return;
 
             var windowFlags = PrepareWindow(position.BarCondition);
 
@@ -217,6 +262,9 @@ namespace RepairMe
             ImGui.SetNextWindowSize(conf.BarConditionSize + ImGui.GetStyle().WindowPadding * 2);
             if (ImGui.Begin(BarConditionWindow, windowFlags))
             {
+                MigratePositions(ref position.BarCondition);
+                CheckDrag(ref position.BarCondition);
+
                 if (condition <= conf.ThresholdConditionCritical)
                     ProgressBar(condition / 100f,
                         conf.BarConditionOrientation,
@@ -321,7 +369,7 @@ namespace RepairMe
 
         private void DrawSpiritbondBar()
         {
-            if (!conf.BarSpiritbondEnabled) return;
+            if (conf.PositionsMigrated && !conf.BarSpiritbondEnabled) return;
 
             var windowFlags = PrepareWindow(position.BarSpiritbond);
 
@@ -330,6 +378,9 @@ namespace RepairMe
             ImGui.SetNextWindowSize(conf.BarSpiritbondSize + ImGui.GetStyle().WindowPadding * 2);
             if (ImGui.Begin(BarSpiritbondWindow, windowFlags))
             {
+                MigratePositions(ref position.BarSpiritbond);
+                CheckDrag(ref position.BarSpiritbond);
+
                 if (spiritbond < ThresholdSpiritbondFull)
                     ProgressBar(spiritbond / 100f,
                         conf.BarSpiritbondOrientation,
@@ -351,28 +402,31 @@ namespace RepairMe
         }
 
         private void DrawPercent(bool percentEnabled, float percent, string percentWindow, string percentWindowChild,
-            Vector4 percentColor, Vector4 percentBg, Vector2 percentPosition)
+            Vector4 percentColor, Vector4 percentBg, ref Vector2 percentPosition)
         {
             DrawText(percentEnabled, $"{percent:F2}%", false, percentWindow, percentWindowChild,
-                percentColor, percentBg, percentPosition);
+                percentColor, percentBg, ref percentPosition);
         }
 
         private void DrawAlert(bool alertEnabled, string text, string alertWindow, string alertWindowChild,
-            Vector4 alertColor, Vector4 alertBg, Vector2 alertPosition)
+            Vector4 alertColor, Vector4 alertBg, ref Vector2 alertPosition)
         {
             DrawText(alertEnabled, text, true, alertWindow, alertWindowChild,
-                alertColor, alertBg, alertPosition);
+                alertColor, alertBg, ref alertPosition);
         }
 
         private void DrawText(bool enabled, string text, bool isAlert, string window, string windowChild, Vector4 color,
-            Vector4 bg, Vector2 position)
+            Vector4 bg, ref Vector2 position)
         {
-            if (!enabled) return;
+            if (conf.PositionsMigrated && !enabled) return;
 
             var windowFlags = PrepareWindow(position);
             PushWindowEditingStyle(isAlert);
             if (ImGui.Begin(window, windowFlags))
             {
+                MigratePositions(ref position);
+                CheckDrag(ref position);
+
                 var childSize = ImGui.CalcTextSize(text);
                 childSize.X += ProgressLabelPadding * 2;
 
@@ -418,7 +472,7 @@ namespace RepairMe
                 return;
             }
 
-            if (ImGui.Checkbox("Highlight (to move things around use the 'position' settings below)##repairMe001", ref highlightCheckbox)) conf.Save();
+            if (ImGui.Checkbox("Move UI##repairMe001", ref UnlockedUiModeCheckbox)) conf.Save();
 
             ImGui.SameLine();
             if (ImGui.Checkbox("Testing mode##repairMe002", ref testingMode)) conf.Save();
@@ -427,43 +481,84 @@ namespace RepairMe
 
             if (ImGui.CollapsingHeader("Condition settings##repairMe003", ImGuiTreeNodeFlags.DefaultOpen))
             {
-                if (ImGui.Checkbox("Bar##repairMe004", ref conf.BarConditionEnabled)) conf.Save();
+                if (ImGui.Checkbox("Show Bar##repairMe004", ref conf.BarConditionEnabled)) conf.Save();
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(longestOrientationLabel);
                 if (ImGui.Combo("Orientation##repairMe004.2", ref conf.BarConditionOrientation,
                         OrientationLabels, OrientationSize))
                     conf.Save();
-                ImGui.SameLine();
-                if (ImGui.Checkbox("Percentage##repairMe005", ref conf.PercentConditionEnabled)) conf.Save();
 
-                if (ImGui.Checkbox("Alert when Low##repairMe006", ref conf.AlertConditionLowEnabled)) conf.Save();
-                ImGui.SameLine();
-                if (ImGui.Checkbox("Alert when Critical##repairMe007", ref conf.AlertConditionCriticalEnabled))
+                if (ImGui.Checkbox("Show Percentage##repairMe005", ref conf.PercentConditionEnabled))
+                    conf.Save();
+
+                if (ImGui.Checkbox("Show Alert when Low##repairMe006", ref conf.AlertConditionLowEnabled))
+                    conf.Save();
+
+                if (ImGui.Checkbox("Show Alert when Critical##repairMe007", ref conf.AlertConditionCriticalEnabled))
                     conf.Save();
 
                 ImGui.Spacing();
-                ImGui.Text("Position");
-                if (ImGui.DragFloat2("Alert position##repairMe039", ref position.AlertCondition, 1f, 1, float.MaxValue,
-                        "%.0f"))
-                    conf.Save();
+                ImGui.Text("Positions");
 
-                if (ImGui.DragFloat2("Percentage position##repairMe040", ref position.PercentCondition, 1f, 1,
-                        float.MaxValue,
-                        "%.0f"))
+                if (ImGuiCoordinatesInput("##repairMe039", ref position.AlertLowCondition))
                     conf.Save();
+                ImGui.SameLine();
+                if (ImGui.Button("reset##repairMe039.1"))
+                {
+                    position.AlertLowCondition = new PositionProfile().AlertLowCondition;
+                    conf.Save();
+                }
 
-                if (ImGui.DragFloat2("Bar position##repairMe041", ref position.BarCondition, 1f, 1, float.MaxValue,
-                        "%.0f"))
+                ImGui.SameLine();
+                ImGui.Text("Alert Low position");
+
+
+                if (ImGuiCoordinatesInput("##repairMe039.2", ref position.AlertCriticalCondition))
                     conf.Save();
+                ImGui.SameLine();
+                if (ImGui.Button("reset##repairMe039.3"))
+                {
+                    position.AlertCriticalCondition = new PositionProfile().AlertCriticalCondition;
+                    conf.Save();
+                }
+
+                ImGui.SameLine();
+                ImGui.Text("Alert Critical position");
+
+                if (ImGuiCoordinatesInput("##repairMe040", ref position.PercentCondition))
+                    conf.Save();
+                ImGui.SameLine();
+                if (ImGui.Button("reset##repairMe040.1"))
+                {
+                    position.PercentCondition = new PositionProfile().PercentCondition;
+                    conf.Save();
+                }
+
+                ImGui.SameLine();
+                ImGui.Text("Percentage position");
+
+                if (ImGuiCoordinatesInput("##repairMe041", ref position.BarCondition))
+                    conf.Save();
+                ImGui.SameLine();
+                if (ImGui.Button("reset##repairMe041.1"))
+                {
+                    position.BarCondition = new PositionProfile().BarCondition;
+                    conf.Save();
+                }
+
+                ImGui.SameLine();
+                ImGui.Text("Bar position");
 
                 ImGui.Spacing();
                 ImGui.Text("Size");
-                if (ImGui.DragFloat2("Bar size##repairMe008", ref conf.BarConditionSize, 1f, 1, float.MaxValue,
-                        "%.0f"))
+
+                ImGui.PushItemWidth(80);
+                if (ImGuiCoordinatesInput("Bar size##repairMe008", ref conf.BarConditionSize))
                     conf.Save();
+                ImGui.PopItemWidth();
 
                 ImGui.Spacing();
-                ImGui.Text("Threshold order is OK > Low > Critical. This affects the condition bar and alerts");
+                ImGui.Text("Threshold - Order is OK > Low > Critical. This affects the condition bar and alerts");
                 if (ImGui.SliderInt("Low threshold##repairMe009", ref conf.ThresholdConditionLow, 0, 100, "%d%%"))
                 {
                     if (conf.ThresholdConditionLow <= conf.ThresholdConditionCritical)
@@ -480,6 +575,8 @@ namespace RepairMe
                 }
 
                 ImGui.Spacing();
+                ImGui.Text("Alert messages");
+                
                 if (ImGui.InputTextWithHint("Alert Low Message##repairMe011", "", ref conf.AlertConditionLowText,
                         AlertMessageMaximumLength)) conf.Save();
                 if (ImGui.InputTextWithHint("Alert Critical Message##repairMe012", "",
@@ -487,7 +584,7 @@ namespace RepairMe
                         AlertMessageMaximumLength)) conf.Save();
 
                 ImGui.Spacing();
-                ImGui.Text("Colors support transparency, including becoming fully transparent");
+                ImGui.Text("Colors - They support transparency, including becoming fully transparent");
                 if (ImGui.BeginTable("condition-colors##repairMe013", 2))
                 {
                     ColorPicker("Percentage Color##repairMe014", ref conf.PercentConditionColor);
@@ -508,45 +605,73 @@ namespace RepairMe
 
             if (ImGui.CollapsingHeader("Spiritbond settings"))
             {
-                if (ImGui.Checkbox("Bar##repairMe026", ref conf.BarSpiritbondEnabled)) conf.Save();
+                if (ImGui.Checkbox("Show Bar##repairMe026", ref conf.BarSpiritbondEnabled))
+                    conf.Save();
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(longestOrientationLabel);
                 if (ImGui.Combo("Orientation##repairMe026.2", ref conf.BarSpiritbondOrientation,
                         OrientationLabels, OrientationSize))
                     conf.Save();
-                ImGui.SameLine();
-                if (ImGui.Checkbox("Percentage##repairMe027", ref conf.PercentSpiritbondEnabled)) conf.Save();
-                ImGui.SameLine();
-                if (ImGui.Checkbox("Alert when Full##repairMe028", ref conf.AlertSpiritbondFullEnabled)) conf.Save();
+
+                if (ImGui.Checkbox("Show Percentage##repairMe027", ref conf.PercentSpiritbondEnabled))
+                    conf.Save();
+
+                if (ImGui.Checkbox("Show Alert when Full##repairMe028", ref conf.AlertSpiritbondFullEnabled))
+                    conf.Save();
 
 
                 ImGui.Spacing();
-                ImGui.Text("Position");
-                if (ImGui.DragFloat2("Alert position##repairMe042", ref position.AlertSpiritbond, 1f, 1, float.MaxValue,
-                        "%.0f"))
+                ImGui.Text("Positions");
+                if (ImGuiCoordinatesInput("##repairMe042", ref position.AlertSpiritbond))
                     conf.Save();
+                ImGui.SameLine();
+                if (ImGui.Button("reset##repairMe042.1"))
+                {
+                    position.AlertSpiritbond = new PositionProfile().AlertSpiritbond;
+                    conf.Save();
+                }
 
-                if (ImGui.DragFloat2("Percentage position##repairMe043", ref position.PercentSpiritbond, 1f, 1,
-                        float.MaxValue,
-                        "%.0f"))
-                    conf.Save();
+                ImGui.SameLine();
+                ImGui.Text("Alert Full position");
 
-                if (ImGui.DragFloat2("Bar position##repairMe044", ref position.BarSpiritbond, 1f, 1, float.MaxValue,
-                        "%.0f"))
+                if (ImGuiCoordinatesInput("##repairMe043", ref position.PercentSpiritbond))
                     conf.Save();
+                ImGui.SameLine();
+                if (ImGui.Button("reset##repairMe043.1"))
+                {
+                    position.PercentSpiritbond = new PositionProfile().PercentSpiritbond;
+                    conf.Save();
+                }
+
+                ImGui.SameLine();
+                ImGui.Text("Percentage position");
+
+                if (ImGuiCoordinatesInput("##repairMe044", ref position.BarSpiritbond))
+                    conf.Save();
+                ImGui.SameLine();
+                if (ImGui.Button("reset##repairMe044.1"))
+                {
+                    position.PercentSpiritbond = new PositionProfile().PercentSpiritbond;
+                    conf.Save();
+                }
+
+                ImGui.SameLine();
+                ImGui.Text("Bar position");
 
                 ImGui.Spacing();
                 ImGui.Text("Size");
-                if (ImGui.DragFloat2("Bar size##repairMe029", ref conf.BarSpiritbondSize, 1f, 1, float.MaxValue,
-                        "%.0f"))
+                if (ImGuiCoordinatesInput("Bar size##repairMe029", ref conf.BarSpiritbondSize))
                     conf.Save();
 
                 ImGui.Spacing();
+                ImGui.Text("Alert messages");
+                
                 if (ImGui.InputTextWithHint("Alert Full Message##repairMe030", "", ref conf.AlertSpiritbondFullText,
                         AlertMessageMaximumLength)) conf.Save();
 
                 ImGui.Spacing();
-                ImGui.Text("Colors support transparency, including becoming fully transparent");
+                
+                ImGui.Text("Colors - They support transparency, including becoming fully transparent");
                 if (ImGui.BeginTable("spiritbond-colors", 2))
                 {
                     ColorPicker("Percentage Color##repairMe031", ref conf.PercentSpiritbondColor);
@@ -578,23 +703,26 @@ namespace RepairMe
                 ImGui.Text("Copy position settings from");
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(ImGui.CalcTextSize("9999x9999").X * 1.75f);
-                if(ImGui.Combo("##repairMe046", ref current, resolutions, resolutions.Length))
+                if (ImGui.Combo("##repairMe046", ref current, resolutions, resolutions.Length))
                 {
                     selectedProfileCombo = current;
                 }
+
                 ImGui.SameLine();
                 if (ImGui.Button("Copy"))
                 {
                     positionUndo = new PositionProfile();
                     positionUndo.CopyFrom(position);
 
-                    PositionProfile? source = conf.PositionProfiles.GetValueOrDefault(resolutions[selectedProfileCombo]);
+                    PositionProfile? source =
+                        conf.PositionProfiles.GetValueOrDefault(resolutions[selectedProfileCombo]);
                     if (source != null)
                     {
                         position.CopyFrom(source);
                         conf.Save();
                     }
                 }
+
                 ImGui.SameLine();
 
                 if (positionUndo != null)
@@ -606,10 +734,27 @@ namespace RepairMe
                         positionUndo = null;
                     }
                 }
-
             }
 
             ImGui.End();
+        }
+
+        private void MigratePositions(ref Vector2 position)
+        {
+            if (!isDrawingFirstFrame) return;
+
+            var pos = ImGui.GetWindowPos();
+            position.X = pos.X;
+            position.Y = pos.Y;
+        }
+
+        private static bool ImGuiCoordinatesInput(string label,
+            ref Vector2 v)
+        {
+            ImGui.PushItemWidth(80);
+            var result = ImGui.DragFloat2(label, ref v, 1f, 1, float.MaxValue, "%.0f");
+            ImGui.PopItemWidth();
+            return result;
         }
 
 #if DEBUG

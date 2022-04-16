@@ -15,7 +15,8 @@ namespace RepairMe
         public string Id => ResolutionWidth + "x" + ResolutionHeight;
 
         public Vector2 PercentCondition = new Vector2(50, 50);
-        public Vector2 AlertCondition = new Vector2(250, 50);
+        public Vector2 AlertLowCondition = new Vector2(250, 50);
+        public Vector2 AlertCriticalCondition = new Vector2(250, 75);
         public Vector2 BarCondition = new Vector2(50, 100);
         
         public Vector2 BarSpiritbond = new Vector2(50, 150);
@@ -25,7 +26,8 @@ namespace RepairMe
         public void CopyFrom(PositionProfile other)
         {
             PercentCondition = other.PercentCondition;
-            AlertCondition = other.AlertCondition;
+            AlertLowCondition = other.AlertLowCondition;
+            AlertCriticalCondition = other.AlertCriticalCondition;
             BarCondition = other.BarCondition;
             
             BarSpiritbond = other.BarSpiritbond;
@@ -38,7 +40,9 @@ namespace RepairMe
     [Serializable]
     public class Configuration : IPluginConfiguration
     {
-        public int Version { get; set; } = 0;
+        public int Version { get; set; } = 1;
+
+        public bool PositionsMigrated = true;
 
         // thresholds stuff
         public int ThresholdConditionLow = 50;
@@ -112,6 +116,15 @@ namespace RepairMe
             {
                 config = new Configuration();
                 config.Save();
+            }
+            else
+            {
+                // migrate versions
+                if (config.Version == 0)
+                {
+                    config.PositionsMigrated = false;
+                    config.Version = 1;
+                }
             }
 
             _cachedConfig = config;
