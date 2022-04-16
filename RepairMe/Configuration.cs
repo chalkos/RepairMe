@@ -83,6 +83,7 @@ namespace RepairMe
         public bool PercentSpiritbondEnabled = false;
         public bool PercentSpiritbondShowPercent = true;
         public bool PercentSpiritbondShowDecimals = false;
+        public bool PercentSpiritbondShowMinMax = false;
         public Vector4 PercentSpiritbondColor = new(1, 1, 1, 1);
         public Vector4 PercentSpiritbondBg = new(1, 1, 1, 0.2f);
 

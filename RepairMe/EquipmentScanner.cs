@@ -16,8 +16,8 @@ namespace RepairMe
         public readonly ushort[] Spiritbond;
         public readonly float[] SpiritbondPercents;
         public readonly float LowestConditionPercent;
+        public readonly float LowestSpiritbondPercent;
         public readonly float HighestSpiritbondPercent;
-        public readonly ushort LowestConditionSlot;
 
         public EquipmentData(uint[] idValues, ushort[] conditionValues, ushort[] spiritbondValues)
         {
@@ -27,8 +27,8 @@ namespace RepairMe
             SpiritbondPercents = new float[EquipmentScanner.EquipmentContainerSize];
 
             LowestConditionPercent = 60000;
+            LowestSpiritbondPercent = 10000;
             HighestSpiritbondPercent = 0;
-            LowestConditionSlot = 0; // mandatory unconditional set
 
             for (var i = 0; i < EquipmentScanner.EquipmentContainerSize; i++)
             {
@@ -36,21 +36,21 @@ namespace RepairMe
                 Condition[i] = conditionValues[i];
                 Spiritbond[i] = spiritbondValues[i];
                 SpiritbondPercents[i] = spiritbondValues[i] / 10000f;
-                
-                if(Id[i] == 0) continue;
 
-                if (LowestConditionPercent > Condition[i])
-                {
-                    LowestConditionPercent = Condition[i];
-                    LowestConditionSlot = (ushort)i;
-                }
+                if (Id[i] == 0) continue;
+
+                if (LowestConditionPercent > Condition[i]) LowestConditionPercent = Condition[i];
 
                 if (HighestSpiritbondPercent < spiritbondValues[i])
                     HighestSpiritbondPercent = spiritbondValues[i];
+
+                if (LowestSpiritbondPercent > spiritbondValues[i])
+                    LowestSpiritbondPercent = spiritbondValues[i];
             }
 
             LowestConditionPercent /= 300f;
-            HighestSpiritbondPercent = HighestSpiritbondPercent /= 100f;
+            HighestSpiritbondPercent /= 100f;
+            LowestSpiritbondPercent /= 100f;
         }
     }
 

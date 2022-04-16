@@ -56,6 +56,7 @@ namespace RepairMe
         private bool UnlockedUiMode => UnlockedUiModeCheckbox && SettingsVisible;
         private float condition = 100;
         private float spiritbond = 0;
+        private float leastSpiritbond = 0;
         private float[] spiritbondPoints = Array.Empty<float>();
         private bool testingMode = true;
         private bool isDragging = false;
@@ -107,6 +108,7 @@ namespace RepairMe
                         TestingModeCycleDurationFloat * 100;
                     spiritbond = (DateTime.Now.Second % TestingModeCycleDurationInt + 1) /
                         TestingModeCycleDurationFloat * 100;
+                    leastSpiritbond = spiritbond * 0.3f;
                     spiritbondPoints = new[] { 0f, 0.2f, 0.25f, 0.4f, 0.5f, 0f, 0.7f, 0.8f, 0.81f, 0.82f, 0.83f, 0.9f };
                 }
                 else
@@ -114,6 +116,7 @@ namespace RepairMe
                     var e = eventHandler.EquipmentScannerLastEquipmentData;
                     condition = e?.LowestConditionPercent ?? 100f;
                     spiritbond = e?.HighestSpiritbondPercent ?? 0f;
+                    leastSpiritbond = e?.LowestSpiritbondPercent ?? 0f;
                     spiritbondPoints = e?.SpiritbondPercents ?? EmptyPointsArray;
                 }
 
@@ -134,7 +137,7 @@ namespace RepairMe
                 DrawPercent(conf.PercentSpiritbondEnabled, spiritbond, PercentSpiritbondWindow,
                     PercentSpiritbondWindowChild, conf.PercentSpiritbondColor, conf.PercentSpiritbondBg,
                     ref position.PercentSpiritbond, conf.PercentSpiritbondShowPercent,
-                    conf.PercentSpiritbondShowDecimals);
+                    conf.PercentSpiritbondShowDecimals, conf.PercentSpiritbondShowMinMax ? leastSpiritbond : null);
 
                 // alert condition critical
                 if (!conf.PositionsMigrated || UnlockedUiMode || condition <= conf.ThresholdConditionCritical)
@@ -484,13 +487,22 @@ namespace RepairMe
         }
 
         private void DrawPercent(bool percentEnabled, float percent, string percentWindow, string percentWindowChild,
-            Vector4 percentColor, Vector4 percentBg, ref Vector2 percentPosition, bool showSign, bool showDecimals)
+            Vector4 percentColor, Vector4 percentBg, ref Vector2 percentPosition, bool showSign, bool showDecimals,
+            float? extraValue = null)
         {
             string text =
                 showSign && showDecimals ? $"{percent:F2}%"
-                : showSign ? $"{percent:F0}%"
+                : showSign ? $"{Math.Floor(percent):F0}%"
                 : showDecimals ? $"{percent:F2}"
-                : $"{percent:F0}";
+                : $"{Math.Floor(percent):F0}";
+
+            if (extraValue != null)
+                text =
+                    (showSign && showDecimals ? $"{extraValue.Value:F2}%"
+                        : showSign ? $"{Math.Floor(extraValue.Value):F0}%"
+                        : showDecimals ? $"{extraValue.Value:F2}"
+                        : $"{Math.Floor(extraValue.Value):F0}") + " / " + text;
+
             DrawText(percentEnabled, text, false, percentWindow, percentWindowChild,
                 percentColor, percentBg, ref percentPosition);
         }
@@ -718,6 +730,10 @@ namespace RepairMe
                 ImGui.SameLine();
                 if (ImGui.Checkbox("Show % sign##repairMe005.2", ref conf.PercentSpiritbondShowPercent))
                     conf.Save();
+                if (ImGui.Checkbox("Also show least spiritbonded item##repairMe005.3",
+                        ref conf.PercentSpiritbondShowMinMax))
+                    conf.Save();
+
 
                 if (ImGui.Checkbox("Show Alert when Full##repairMe028", ref conf.AlertSpiritbondFullEnabled))
                     conf.Save();
