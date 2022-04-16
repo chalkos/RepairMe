@@ -19,6 +19,12 @@ Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be 
 
 ## Changelog
 
+* v1.0.1.3
+  * new option: display spiritbond of all items in the bar (color can be changed)
+  * new option: hide % sign in percentage labels
+  * new option: hide decimal digits in percentage labels
+  * new option: show both least and most spiritbonded items in the percentage label
+  * new option: adjust bar corner roundness
 * v1.0.1.2
   * If coming from v1.0.0.5 or below, your position settings will not be reset (apologies and thanks to the beta testers)
   * Drag&drop is now supported again
