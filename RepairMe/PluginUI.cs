@@ -418,7 +418,7 @@ namespace RepairMe
                 return;
             }
 
-            if (ImGui.Checkbox("Highlight##repairMe001", ref highlightCheckbox)) conf.Save();
+            if (ImGui.Checkbox("Highlight (to move things around use the 'position' settings below)##repairMe001", ref highlightCheckbox)) conf.Save();
 
             ImGui.SameLine();
             if (ImGui.Checkbox("Testing mode##repairMe002", ref testingMode)) conf.Save();
@@ -443,22 +443,22 @@ namespace RepairMe
 
                 ImGui.Spacing();
                 ImGui.Text("Position");
-                if (ImGui.DragFloat2("Alert##repairMe039", ref position.AlertCondition, 1f, 1, float.MaxValue,
+                if (ImGui.DragFloat2("Alert position##repairMe039", ref position.AlertCondition, 1f, 1, float.MaxValue,
                         "%.0f"))
                     conf.Save();
 
-                if (ImGui.DragFloat2("Percentage##repairMe040", ref position.PercentCondition, 1f, 1,
+                if (ImGui.DragFloat2("Percentage position##repairMe040", ref position.PercentCondition, 1f, 1,
                         float.MaxValue,
                         "%.0f"))
                     conf.Save();
 
-                if (ImGui.DragFloat2("Bar##repairMe041", ref position.BarCondition, 1f, 1, float.MaxValue,
+                if (ImGui.DragFloat2("Bar position##repairMe041", ref position.BarCondition, 1f, 1, float.MaxValue,
                         "%.0f"))
                     conf.Save();
 
                 ImGui.Spacing();
                 ImGui.Text("Size");
-                if (ImGui.DragFloat2("Bar##repairMe008", ref conf.BarConditionSize, 1f, 1, float.MaxValue,
+                if (ImGui.DragFloat2("Bar size##repairMe008", ref conf.BarConditionSize, 1f, 1, float.MaxValue,
                         "%.0f"))
                     conf.Save();
 
@@ -522,22 +522,22 @@ namespace RepairMe
 
                 ImGui.Spacing();
                 ImGui.Text("Position");
-                if (ImGui.DragFloat2("Alert##repairMe042", ref position.AlertSpiritbond, 1f, 1, float.MaxValue,
+                if (ImGui.DragFloat2("Alert position##repairMe042", ref position.AlertSpiritbond, 1f, 1, float.MaxValue,
                         "%.0f"))
                     conf.Save();
 
-                if (ImGui.DragFloat2("Percentage##repairMe043", ref position.PercentSpiritbond, 1f, 1,
+                if (ImGui.DragFloat2("Percentage position##repairMe043", ref position.PercentSpiritbond, 1f, 1,
                         float.MaxValue,
                         "%.0f"))
                     conf.Save();
 
-                if (ImGui.DragFloat2("Bar##repairMe044", ref position.BarSpiritbond, 1f, 1, float.MaxValue,
+                if (ImGui.DragFloat2("Bar position##repairMe044", ref position.BarSpiritbond, 1f, 1, float.MaxValue,
                         "%.0f"))
                     conf.Save();
 
                 ImGui.Spacing();
                 ImGui.Text("Size");
-                if (ImGui.DragFloat2("Bar##repairMe029", ref conf.BarSpiritbondSize, 1f, 1, float.MaxValue,
+                if (ImGui.DragFloat2("Bar size##repairMe029", ref conf.BarSpiritbondSize, 1f, 1, float.MaxValue,
                         "%.0f"))
                     conf.Save();
 

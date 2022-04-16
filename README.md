@@ -19,6 +19,8 @@ Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be 
 
 ## Changelog
 
+* v1.0.1.1
+  * attempt to make it clear how to move things around
 * v1.0.1.0
   * WARNING: all bar/alert/percentages positions will be reset
   * replaced drag&drop positioning with X/Y precise sliders
