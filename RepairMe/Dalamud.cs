@@ -20,7 +20,7 @@ namespace RepairMe
         [PluginService][RequiredVersion("1.0")] public static DalamudPluginInterface PluginInterface { get; private set; } = null!;
         [PluginService][RequiredVersion("1.0")] public static CommandManager         Commands        { get; private set; } = null!;
         //[PluginService][RequiredVersion("1.0")] public static SigScanner             SigScanner      { get; private set; } = null!;
-        //[PluginService][RequiredVersion("1.0")] public static DataManager            GameData        { get; private set; } = null!;
+        [PluginService][RequiredVersion("1.0")] public static DataManager            GameData        { get; private set; } = null!;
         [PluginService][RequiredVersion("1.0")] public static ClientState            ClientState     { get; private set; } = null!;
         //[PluginService][RequiredVersion("1.0")] public static ChatGui                Chat            { get; private set; } = null!;
         //[PluginService][RequiredVersion("1.0")] public static SeStringManager        SeStrings       { get; private set; } = null!;

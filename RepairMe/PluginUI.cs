@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface;
 using Dalamud.Logging;
 using ImGuiNET;
+using Lumina.Excel;
 using XivCommon;
 using static RepairMe.Dalamud;
 
@@ -65,6 +65,9 @@ namespace RepairMe
         private bool isDragging = false;
         private bool isDrawingFirstFrame = true;
         private XivCommonBase xivCommon;
+
+        private ExcelSheet<Lumina.Excel.GeneratedSheets.Item> items =
+            GameData.GetExcelSheet<Lumina.Excel.GeneratedSheets.Item>()!;
 
         public PluginUi(EventHandler eventHandler, XivCommonBase xivCommon)
         {
@@ -452,7 +455,7 @@ namespace RepairMe
                                 pointTopLeft.Y + size.Y * (1 - points[i]) + pointSize
                             )
                         );
-                        
+
                         break;
                 }
 
@@ -620,7 +623,7 @@ namespace RepairMe
 
             if (Keys[VirtualKey.SHIFT])
             {
-                ImGui.SameLine(ImGui.GetContentRegionAvail().X-12);
+                ImGui.SameLine(ImGui.GetContentRegionAvail().X - 12);
                 if (ImGuiEx.IconButton(FontAwesomeIcon.Bug, "Debug info"))
                     debugVisible = !debugVisible;
             }
@@ -952,38 +955,109 @@ namespace RepairMe
 
         private void DrawDebugWindow()
         {
-            if (!debugVisible) return;
+            if (!debugVisible || eventHandler.EquipmentScannerLastEquipmentData == null) return;
 
-            var e = eventHandler.EquipmentScannerLastEquipmentData;
-            if (e == null) return;
+            var e = eventHandler.EquipmentScannerLastEquipmentData.Value;
 
             if (ImGui.Begin("RepairMe Debug", ref debugVisible,
                     ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse |
                     ImGuiWindowFlags.AlwaysAutoResize))
             {
-                if (ImGui.BeginTable("detail", 4, ImGuiTableFlags.BordersInnerH))
+                ImGui.Text($"Equipment");
+
+                if (ImGui.BeginTable("RepairMe items table", 6, ImGuiTableFlags.BordersInnerH))
                 {
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.Text("i");
                     ImGui.TableNextColumn();
+                    ImGui.Text("slot");
+                    ImGui.TableNextColumn();
                     ImGui.Text("id");
                     ImGui.TableNextColumn();
                     ImGui.Text("Cond");
                     ImGui.TableNextColumn();
-                    ImGui.Text("Sb");
-                    
+                    ImGui.Text("Spiritb");
+                    ImGui.TableNextColumn();
+                    ImGui.Text("Name");
+
                     for (int i = 0; i < EquipmentScanner.EquipmentContainerSize; i++)
                     {
                         ImGui.TableNextRow();
                         ImGui.TableNextColumn();
                         ImGui.Text(i.ToString());
                         ImGui.TableNextColumn();
-                        ImGui.Text(e?.Id[i].ToString());
+                        ImGui.Text(EquipmentScanner.EquipmentSlotNames[i]);
                         ImGui.TableNextColumn();
-                        ImGui.Text($"{(e?.Condition[i] / 300f):F2}");
+                        ImGui.Text(e.Id[i].ToString());
                         ImGui.TableNextColumn();
-                        ImGui.Text($"{(e?.Spiritbond[i] / 100f):F2}");
+                        ImGui.Text($"{(e.Condition[i] / 300f):F2}");
+                        ImGui.TableNextColumn();
+                        ImGui.Text($"{(e.Spiritbond[i] / 100f):F2}");
+                        ImGui.TableNextColumn();
+                        ImGui.Text($"{items.GetRow(e.Id[i])?.Name}");
+                    }
+
+                    ImGui.EndTable();
+                }
+
+                ImGui.Spacing();
+                ImGui.Text($"Resolutions & Positions");
+
+                if (ImGui.BeginTable("RepairMe positions table", 10, ImGuiTableFlags.BordersInnerH))
+                {
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn();
+                    ImGui.Text("resolution");
+                    ImGui.TableNextColumn();
+                    ImGui.Text("C.ALow");
+                    ImGui.TableNextColumn();
+                    ImGui.Text("C.ACrit");
+                    ImGui.TableNextColumn();
+                    ImGui.Text("C.Perct");
+                    ImGui.TableNextColumn();
+                    ImGui.Text("C.Bar");
+                    ImGui.TableNextColumn();
+                    ImGui.Text("C.BarSize");
+                    ImGui.TableNextColumn();
+                    ImGui.Text("S.A");
+                    ImGui.TableNextColumn();
+                    ImGui.Text("S.Perct");
+                    ImGui.TableNextColumn();
+                    ImGui.Text("S.Bar");
+                    ImGui.TableNextColumn();
+                    ImGui.Text("S.BarSize");
+
+                    foreach (var p in conf.PositionProfiles.Values)
+                    {
+                        ImGui.TableNextRow();
+                        ImGui.TableNextColumn();
+                        if (position.Id == p.Id)
+                            ImGui.Text($"» {p.Id} «");
+                        else
+                        {
+                            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.CalcTextSize(" »").X);
+                            ImGui.Text($"{p.Id}");
+                        }
+
+                        ImGui.TableNextColumn();
+                        ImGui.Text($"{p.AlertLowCondition.X}x{p.AlertLowCondition.Y}");
+                        ImGui.TableNextColumn();
+                        ImGui.Text($"{p.AlertCriticalCondition.X}x{p.AlertCriticalCondition.Y}");
+                        ImGui.TableNextColumn();
+                        ImGui.Text($"{p.PercentCondition.X}x{p.PercentCondition.Y}");
+                        ImGui.TableNextColumn();
+                        ImGui.Text($"{p.BarCondition.X}x{p.BarCondition.Y}");
+                        ImGui.TableNextColumn();
+                        ImGui.Text($"{conf.BarConditionSize.X}x{conf.BarConditionSize.Y}");
+                        ImGui.TableNextColumn();
+                        ImGui.Text($"{p.AlertSpiritbond.X}x{p.AlertSpiritbond.Y}");
+                        ImGui.TableNextColumn();
+                        ImGui.Text($"{p.PercentSpiritbond.X}x{p.PercentSpiritbond.Y}");
+                        ImGui.TableNextColumn();
+                        ImGui.Text($"{p.BarSpiritbond.X}x{p.BarSpiritbond.Y}");
+                        ImGui.TableNextColumn();
+                        ImGui.Text($"{conf.BarSpiritbondSize.X}x{conf.BarSpiritbondSize.Y}");
                     }
 
                     ImGui.EndTable();

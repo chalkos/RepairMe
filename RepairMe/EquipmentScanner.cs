@@ -58,6 +58,23 @@ namespace RepairMe
     {
         internal const uint EquipmentContainerSize = 13;
 
+        internal static readonly string[] EquipmentSlotNames = new[]
+        {
+            "mhand",
+            "ohand",
+            "head",
+            "body",
+            "hands",
+            "rip belt",
+            "legs",
+            "feet",
+            "ear",
+            "neck",
+            "bracer",
+            "ring1",
+            "ring2"
+        };
+
         public Action? NotificationTarget { private get; set; }
 
         private InventoryManager* inventoryManager;
