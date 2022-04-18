@@ -300,7 +300,9 @@ namespace RepairMe
                         false,
                         EmptyPointsArray,
                         conf.BarConditionCriticalColor,
-                        conf.BarConditionRounding
+                        conf.BarConditionRounding,
+                        conf.BarConditionBorderSize,
+                        conf.BarConditionBorderColor
                     );
                 else if (condition <= conf.ThresholdConditionLow)
                     ProgressBar(condition / 100f,
@@ -311,7 +313,9 @@ namespace RepairMe
                         false,
                         EmptyPointsArray,
                         conf.BarConditionLowColor,
-                        conf.BarConditionRounding
+                        conf.BarConditionRounding,
+                        conf.BarConditionBorderSize,
+                        conf.BarConditionBorderColor
                     );
                 else
                     ProgressBar(condition / 100f,
@@ -322,7 +326,9 @@ namespace RepairMe
                         false,
                         EmptyPointsArray,
                         conf.BarConditionOkColor,
-                        conf.BarConditionRounding
+                        conf.BarConditionRounding,
+                        conf.BarConditionBorderSize,
+                        conf.BarConditionBorderColor
                     );
             }
 
@@ -331,11 +337,22 @@ namespace RepairMe
         }
 
         private void ProgressBar(float progress, int orientation, Vector2 size, Vector4 fgColor, Vector4 bgColor,
-            bool showPoints, float[] points, Vector4 pointsColor, float rounding)
+            bool showPoints, float[] points, Vector4 pointsColor, float rounding, float borderSize, Vector4 borderColor)
         {
-            var pointTopLeft = ImGui.GetCursorScreenPos();
+            // have border grow only inwards instead of outwards+inwards
+            float innerOffset = borderSize;
+            float outterOffset = borderSize % 2 == 0 ? borderSize / 2f - 0.5f : (borderSize - 1) / 2f;
+            var pointTopLeftOutter = ImGui.GetCursorScreenPos() + Vector2.One * outterOffset;
+            var sizeOutter = size - Vector2.One * outterOffset * 2;
+            var pointTopLeft = ImGui.GetCursorScreenPos() + Vector2.One * innerOffset;
+            size -= Vector2.One * innerOffset * 2;
 
             var bdl = ImGui.GetBackgroundDrawList(ImGui.GetMainViewport());
+
+            if (borderSize > 0)
+                bdl.AddRect(pointTopLeftOutter,
+                    new Vector2(pointTopLeftOutter.X + sizeOutter.X, pointTopLeftOutter.Y + sizeOutter.Y),
+                    ImGui.GetColorU32(borderColor), rounding, ImDrawFlags.Closed, borderSize);
 
             bdl.AddRectFilled(
                 pointTopLeft,
@@ -491,7 +508,9 @@ namespace RepairMe
                         conf.BarSpiritbondShowAllItems,
                         spiritbondPoints,
                         conf.BarSpiritbondPointsColor,
-                        conf.BarSpiritbondRounding
+                        conf.BarSpiritbondRounding,
+                        conf.BarSpiritbondBorderSize,
+                        conf.BarSpiritbondBorderColor
                     );
                 else
                     ProgressBar(spiritbond / 100f,
@@ -502,7 +521,9 @@ namespace RepairMe
                         conf.BarSpiritbondShowAllItems,
                         spiritbondPoints,
                         conf.BarSpiritbondPointsColor,
-                        conf.BarSpiritbondRounding
+                        conf.BarSpiritbondRounding,
+                        conf.BarSpiritbondBorderSize,
+                        conf.BarSpiritbondBorderColor
                     );
             }
 
@@ -725,6 +746,10 @@ namespace RepairMe
                 if (ImGui.DragFloat("Bar rounding##repairMe008.1", ref conf.BarConditionRounding, 1f, 0, float.MaxValue,
                         "%.0f"))
                     conf.Save();
+                if (ImGui.DragFloat("Border size##repairMe008.2", ref conf.BarConditionBorderSize, 1f, 0,
+                        float.MaxValue,
+                        "%.0f"))
+                    conf.Save();
                 ImGui.PopItemWidth();
 
                 ImGui.Spacing();
@@ -765,6 +790,8 @@ namespace RepairMe
                     ColorPicker("Bar Low Background##repairMe019", ref conf.BarConditionLowBackground);
                     ColorPicker("Bar Critical Color##repairMe020", ref conf.BarConditionCriticalColor);
                     ColorPicker("Bar Critical Background##repairMe021", ref conf.BarConditionCriticalBackground);
+                    ColorPicker("Bar Border Color##repairMe021.1", ref conf.BarConditionBorderColor);
+                    ImGui.TableNextColumn();
                     ColorPicker("Alert Low Color##repairMe022", ref conf.AlertConditionLowColor);
                     ColorPicker("Alert Low Background##repairMe023", ref conf.AlertConditionLowBg);
                     ColorPicker("Alert Critical Color##repairMe024", ref conf.AlertConditionCriticalColor);
@@ -855,6 +882,10 @@ namespace RepairMe
                 if (ImGui.DragFloat("Bar rounding##repairMe029.1", ref conf.BarSpiritbondRounding, 1f, 0,
                         float.MaxValue, "%.0f"))
                     conf.Save();
+                if (ImGui.DragFloat("Border size##repairMe029.2", ref conf.BarSpiritbondBorderSize, 1f, 0,
+                        float.MaxValue,
+                        "%.0f"))
+                    conf.Save();
                 ImGui.PopItemWidth();
 
                 ImGui.Spacing();
@@ -872,10 +903,10 @@ namespace RepairMe
                     ColorPicker("Percentage Background##repairMe032", ref conf.PercentSpiritbondBg);
                     ColorPicker("Bar Color##repairMe033", ref conf.BarSpiritbondProgressColor);
                     ColorPicker("Bar Background##repairMe034", ref conf.BarSpiritbondProgressBackground);
-                    ColorPicker("Other items color##repairMe039", ref conf.BarSpiritbondPointsColor);
-                    ImGui.TableNextColumn();
                     ColorPicker("Bar Full Color##repairMe035", ref conf.BarSpiritbondFullColor);
                     ColorPicker("Bar Full Background##repairMe036", ref conf.BarSpiritbondFullBackground);
+                    ColorPicker("Border Color##repairMe036.1", ref conf.BarSpiritbondBorderColor);
+                    ColorPicker("Other items color##repairMe039", ref conf.BarSpiritbondPointsColor);
                     ColorPicker("Alert Full Color##repairMe037", ref conf.AlertSpiritbondFullColor);
                     ColorPicker("Alert Full Background##repairMe038", ref conf.AlertSpiritbondFullBg);
                     ImGui.TableNextColumn();

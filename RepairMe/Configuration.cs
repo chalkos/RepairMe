@@ -55,6 +55,7 @@ namespace RepairMe
         public float BarConditionRounding = 5f;
         public Vector2 BarConditionSize = new(470, 2);
         public int BarConditionOrientation = 0;
+        public float BarConditionBorderSize = 0;
 
         public Vector4 BarConditionOkColor = new(0.5f, 0.9f, 0, 1);
         public Vector4 BarConditionOkBackground = new(0.29f, 0.29f, 0.29f, 0.54f);
@@ -62,6 +63,7 @@ namespace RepairMe
         public Vector4 BarConditionLowBackground = new(0.29f, 0.29f, 0.29f, 0.54f);
         public Vector4 BarConditionCriticalColor = new(0.9f, 0.2f, 0, 1);
         public Vector4 BarConditionCriticalBackground = new(0.29f, 0.29f, 0.29f, 0.54f);
+        public Vector4 BarConditionBorderColor = new(0, 0, 0, 1);
 
         // bar - spiritbond
         public bool BarSpiritbondEnabled = false;
@@ -69,12 +71,14 @@ namespace RepairMe
         public bool BarSpiritbondShowAllItems = false;
         public Vector2 BarSpiritbondSize = new(470, 2);
         public int BarSpiritbondOrientation = 0;
+        public float BarSpiritbondBorderSize = 0;
 
         public Vector4 BarSpiritbondProgressColor = new(0.12f, 0.81f, 0.88f, 0.4f);
         public Vector4 BarSpiritbondPointsColor = new(0.9f, 0.7f, 0, 1);
         public Vector4 BarSpiritbondProgressBackground = new(0.29f, 0.29f, 0.29f, 0.54f);
         public Vector4 BarSpiritbondFullColor = new(1, 1, 1, 1f);
         public Vector4 BarSpiritbondFullBackground = new(0.29f, 0.29f, 0.29f, 0.54f);
+        public Vector4 BarSpiritbondBorderColor = new(0, 0, 0, 1);
 
         // percent labels - condition
         public bool PercentConditionEnabled = true;
