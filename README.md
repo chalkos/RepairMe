@@ -19,6 +19,10 @@ Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be 
 
 ## Changelog
 
+* v1.0.1.6
+  * new option: bar border (size and color)
+  * fix "display spiritbond of all items" for right-to-left and bottom-to-top orientations  
+  * new debug window
 * v1.0.1.5
   * new option: clicking condition/spiritbond alerts opens repair/extract materia UI
   * new option: plugin UI is now hidden when player is occupied
