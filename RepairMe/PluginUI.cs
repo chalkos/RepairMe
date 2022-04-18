@@ -424,7 +424,7 @@ namespace RepairMe
                                 pointTopLeft.Y
                             ),
                             new Vector2(
-                                pointTopLeft.X + size.X * (1 - points[i]) - pointSize,
+                                pointTopLeft.X + size.X * (1 - points[i]) + pointSize,
                                 pointTopLeft.Y + size.Y
                             )
                         );
@@ -449,9 +449,10 @@ namespace RepairMe
                             ),
                             new Vector2(
                                 pointTopLeft.X + size.X,
-                                pointTopLeft.Y + size.Y * (1 - points[i]) - pointSize
+                                pointTopLeft.Y + size.Y * (1 - points[i]) + pointSize
                             )
                         );
+                        
                         break;
                 }
 
