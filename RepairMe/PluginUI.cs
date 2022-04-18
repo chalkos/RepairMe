@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Numerics;
+using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface;
 using Dalamud.Logging;
 using ImGuiNET;
 using XivCommon;
+using static RepairMe.Dalamud;
 
 namespace RepairMe
 {
@@ -77,6 +79,7 @@ namespace RepairMe
         }
 
         private bool settingsVisible;
+        private bool debugVisible = false;
 
         public void Dispose()
         {
@@ -165,10 +168,7 @@ namespace RepairMe
                         conf.AlertSpiritbondShortcut ? ClickActionOpenMateriaExtraction : null);
 
                 DrawSettingsWindow();
-
-#if DEBUG
                 DrawDebugWindow();
-#endif
 
                 if (isDrawingFirstFrame && !conf.PositionsMigrated)
                 {
@@ -617,6 +617,13 @@ namespace RepairMe
             ImGui.SameLine();
             if (ImGui.Checkbox("Hide when player is occupied##repairMe002.1", ref conf.HideUiWhenOccupied)) conf.Save();
 
+            if (Keys[VirtualKey.SHIFT])
+            {
+                ImGui.SameLine(ImGui.GetWindowWidth()-30);
+                if (ImGuiEx.IconButton(FontAwesomeIcon.Bug, "Debug info"))
+                    debugVisible = !debugVisible;
+            }
+
             ImGui.Spacing();
 
             if (ImGui.CollapsingHeader("Condition settings##repairMe003", ImGuiTreeNodeFlags.DefaultOpen))
@@ -942,17 +949,29 @@ namespace RepairMe
             return result;
         }
 
-#if DEBUG
         private void DrawDebugWindow()
         {
+            if (!debugVisible) return;
+
             var e = eventHandler.EquipmentScannerLastEquipmentData;
             if (e == null) return;
 
-            if (ImGui.Begin("RepairMe Debug",
-                ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.AlwaysAutoResize))
+            if (ImGui.Begin("RepairMe Debug", ref debugVisible,
+                    ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse |
+                    ImGuiWindowFlags.AlwaysAutoResize))
             {
                 if (ImGui.BeginTable("detail", 4, ImGuiTableFlags.BordersInnerH))
                 {
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn();
+                    ImGui.Text("i");
+                    ImGui.TableNextColumn();
+                    ImGui.Text("id");
+                    ImGui.TableNextColumn();
+                    ImGui.Text("Cond");
+                    ImGui.TableNextColumn();
+                    ImGui.Text("Sb");
+                    
                     for (int i = 0; i < EquipmentScanner.EquipmentContainerSize; i++)
                     {
                         ImGui.TableNextRow();
@@ -969,8 +988,8 @@ namespace RepairMe
                     ImGui.EndTable();
                 }
             }
+
             ImGui.End();
         }
-#endif
     }
 }
