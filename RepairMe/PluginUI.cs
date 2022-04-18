@@ -620,7 +620,7 @@ namespace RepairMe
 
             if (Keys[VirtualKey.SHIFT])
             {
-                ImGui.SameLine(ImGui.GetWindowWidth()-30);
+                ImGui.SameLine(ImGui.GetContentRegionAvail().X-12);
                 if (ImGuiEx.IconButton(FontAwesomeIcon.Bug, "Debug info"))
                     debugVisible = !debugVisible;
             }
