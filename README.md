@@ -19,6 +19,8 @@ Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be 
 
 ## Changelog
 
+* v1.0.1.7
+  * fix "clicking condition/spiritbond alerts" for non-english clients
 * v1.0.1.6
   * new option: bar border (size and color)
   * fix "display spiritbond of all items" for right-to-left and bottom-to-top orientations  
