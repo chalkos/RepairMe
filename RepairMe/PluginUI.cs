@@ -69,6 +69,12 @@ namespace RepairMe
         private ExcelSheet<Lumina.Excel.GeneratedSheets.Item> items =
             GameData.GetExcelSheet<Lumina.Excel.GeneratedSheets.Item>()!;
 
+        private ExcelSheet<Lumina.Excel.GeneratedSheets.GeneralAction> generalActions =
+            GameData.GetExcelSheet<Lumina.Excel.GeneratedSheets.GeneralAction>()!;
+
+        private const uint GeneralActionIdRepair = 6;
+        private const uint GeneralActionIdMateriaExtraction = 14;
+
         public PluginUi(EventHandler eventHandler, XivCommonBase xivCommon)
         {
             this.eventHandler = eventHandler;
@@ -189,12 +195,14 @@ namespace RepairMe
 
         private void ClickActionOpenRepairs()
         {
-            xivCommon.Functions.Chat.SendMessage("/gaction \"Repair\"");
+            string name = generalActions.GetRow(GeneralActionIdRepair)!.Name;
+            xivCommon.Functions.Chat.SendMessage($"/gaction \"{name}\"");
         }
 
         private void ClickActionOpenMateriaExtraction()
         {
-            xivCommon.Functions.Chat.SendMessage("/gaction \"Materia Extraction\"");
+            string name = generalActions.GetRow(GeneralActionIdMateriaExtraction)!.Name;
+            xivCommon.Functions.Chat.SendMessage($"/gaction \"{name}\"");
         }
 
         private void CheckDrag(ref Vector2 position)
