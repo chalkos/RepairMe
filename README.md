@@ -19,6 +19,8 @@ Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be 
 
 ## Changelog
 
+* v1.0.1.8
+  * fix a wrong spiritbond marker at 0% that was showing for equipment slots that have no item 
 * v1.0.1.7
   * fix "clicking condition/spiritbond alerts" for non-english clients
 * v1.0.1.6
