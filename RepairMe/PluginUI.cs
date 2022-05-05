@@ -426,7 +426,7 @@ namespace RepairMe
             float pointSize = 1;
             for (int i = 0; i < points.Length; i++)
             {
-                if (progress <= points[i] || i == 5)
+                if (progress <= points[i] || points[i] < 0)
                     continue;
 
                 switch (orientation)

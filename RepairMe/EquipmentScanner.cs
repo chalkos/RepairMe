@@ -35,9 +35,13 @@ namespace RepairMe
                 Id[i] = idValues[i];
                 Condition[i] = conditionValues[i];
                 Spiritbond[i] = spiritbondValues[i];
-                SpiritbondPercents[i] = spiritbondValues[i] / 10000f;
 
-                if (Id[i] == 0) continue;
+                if (Id[i] == 0)
+                {
+                    SpiritbondPercents[i] = -1;
+                    continue;
+                }
+                SpiritbondPercents[i] = spiritbondValues[i] / 10000f;
 
                 if (LowestConditionPercent > Condition[i]) LowestConditionPercent = Condition[i];
 
