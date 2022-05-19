@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Logging;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using static RepairMe.Dalamud;
 
@@ -18,15 +19,19 @@ namespace RepairMe
         internal EquipmentData? EquipmentScannerLastEquipmentData;
         private CancellationTokenSource? eventLoopTokenSource;
 
-        public bool IsActive => IsLoggedIn && !IsLoading && (
-            !conf.HideUiWhenOccupied || !(
-                Conditions[ConditionFlag.Occupied]
-                || Conditions[ConditionFlag.OccupiedInCutSceneEvent]
-                || Conditions[ConditionFlag.OccupiedSummoningBell]
-                || Conditions[ConditionFlag.OccupiedInQuestEvent]
-                || Conditions[ConditionFlag.OccupiedInEvent]
-            )
-        );
+        public bool IsActive => IsLoggedIn
+                                && !IsLoading
+                                && !IsInPvPArea
+                                && !IsOccupied;
+
+        public bool IsOccupied => conf.HideUiWhenOccupied && (
+            Conditions[ConditionFlag.Occupied]
+            || Conditions[ConditionFlag.OccupiedInCutSceneEvent]
+            || Conditions[ConditionFlag.OccupiedSummoningBell]
+            || Conditions[ConditionFlag.OccupiedInQuestEvent]
+            || Conditions[ConditionFlag.OccupiedInEvent]);
+
+        public bool IsInPvPArea => GameMain.IsInPvPArea();
 
         private bool IsLoggedIn => ClientState.IsLoggedIn;
 

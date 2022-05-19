@@ -67,7 +67,18 @@ namespace RepairMe
 
         private void DrawConfigUi()
         {
-            if (ui != null) ui.SettingsVisible = !ui.SettingsVisible;
+            if (ui == null) return;
+
+            ui.SettingsVisible = !ui.SettingsVisible;
+            switch (eventHandler)
+            {
+                case { IsOccupied: true }:
+                    Chat.PrintError("RepairMe is hidden while occupied");
+                    break;
+                case { IsInPvPArea: true }:
+                    Chat.PrintError("RepairMe is disabled while in a PvP area");
+                    break;
+            }
         }
     }
 }

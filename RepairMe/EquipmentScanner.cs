@@ -114,11 +114,13 @@ namespace RepairMe
             spiritbondValues = new ushort[EquipmentContainerSize];
             idValues = new uint[EquipmentContainerSize];
 
-            Setup();
+            EnableScanning();
 
             Dalamud.ClientState.Login += ClientStateOnLogin;
             Dalamud.ClientState.Logout += ClientStateOnLogout;
             Dalamud.Framework.Update += GetConditionInfo;
+            Dalamud.ClientState.EnterPvP += DisableScanning;
+            Dalamud.ClientState.LeavePvP += EnableScanning;
         }
 
         public void Dispose()
@@ -126,25 +128,26 @@ namespace RepairMe
             Dalamud.Framework.Update -= GetConditionInfo;
             Dalamud.ClientState.Login -= ClientStateOnLogin;
             Dalamud.ClientState.Logout -= ClientStateOnLogout;
+            Dalamud.ClientState.EnterPvP -= DisableScanning;
+            Dalamud.ClientState.LeavePvP -= EnableScanning;
         }
 
-        private void ClientStateOnLogin(object? sender, EventArgs e)
-        {
-            Setup();
-        }
+        private void ClientStateOnLogin(object? sender, EventArgs e) => EnableScanning();
 
-        private void ClientStateOnLogout(object? sender, EventArgs e)
-        {
-            inventoryManager = null;
-            equipmentContainer = null;
-            equipmentInventoryItem = null;
-        }
+        private void ClientStateOnLogout(object? sender, EventArgs e) => DisableScanning();
 
-        private void Setup()
+        private void EnableScanning()
         {
             inventoryManager = InventoryManager.Instance();
             equipmentContainer = inventoryManager->GetInventoryContainer(InventoryType.EquippedItems);
             equipmentInventoryItem = equipmentContainer->GetInventorySlot(0);
+        }
+
+        private void DisableScanning()
+        {
+            inventoryManager = null;
+            equipmentContainer = null;
+            equipmentInventoryItem = null;
         }
 
         private void GetConditionInfo(Framework framework)
