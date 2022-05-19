@@ -29,6 +29,7 @@ namespace RepairMe
             || Conditions[ConditionFlag.OccupiedInCutSceneEvent]
             || Conditions[ConditionFlag.OccupiedSummoningBell]
             || Conditions[ConditionFlag.OccupiedInQuestEvent]
+            || Conditions[ConditionFlag.Occupied38]
             || Conditions[ConditionFlag.OccupiedInEvent]);
 
         public bool IsInPvPArea => GameMain.IsInPvPArea();
