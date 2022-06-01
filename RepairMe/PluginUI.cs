@@ -155,7 +155,7 @@ namespace RepairMe
                     conf.PercentSpiritbondShowDecimals, conf.PercentSpiritbondShowMinMax ? leastSpiritbond : null);
 
                 // alert condition critical
-                if (!conf.PositionsMigrated || UnlockedUiMode || condition <= conf.ThresholdConditionCritical)
+                if ((isDrawingFirstFrame && !conf.PositionsMigrated) || UnlockedUiMode || condition <= conf.ThresholdConditionCritical)
                     DrawAlert(conf.AlertConditionCriticalEnabled, conf.AlertConditionCriticalText,
                         AlertConditionCriticalWindow, AlertConditionCriticalWindowChild,
                         conf.AlertConditionCriticalColor, conf.AlertConditionCriticalBg,
@@ -163,14 +163,14 @@ namespace RepairMe
                         conf.AlertConditionCriticalShortcut ? ClickActionOpenRepairs : null);
 
                 // alert condition low
-                if (!conf.PositionsMigrated || UnlockedUiMode || condition <= conf.ThresholdConditionLow &&
+                if ((isDrawingFirstFrame && !conf.PositionsMigrated) || UnlockedUiMode || condition <= conf.ThresholdConditionLow &&
                     condition > conf.ThresholdConditionCritical)
                     DrawAlert(conf.AlertConditionLowEnabled, conf.AlertConditionLowText, AlertConditionLowWindow,
                         AlertConditionLowWindowChild, conf.AlertConditionLowColor, conf.AlertConditionLowBg,
                         ref position.AlertLowCondition, conf.AlertConditionLowShortcut ? ClickActionOpenRepairs : null);
 
                 // alert spiritbond full
-                if (!conf.PositionsMigrated || UnlockedUiMode || ThresholdSpiritbondFull <= spiritbond)
+                if ((isDrawingFirstFrame && !conf.PositionsMigrated) || UnlockedUiMode || ThresholdSpiritbondFull <= spiritbond)
                     DrawAlert(conf.AlertSpiritbondFullEnabled, conf.AlertSpiritbondFullText, AlertSpiritbondFullWindow,
                         AlertSpiritbondFullWindowChild, conf.AlertSpiritbondFullColor, conf.AlertSpiritbondFullBg,
                         ref position.AlertSpiritbond,
@@ -976,9 +976,9 @@ namespace RepairMe
 
         private void MigratePositions(ref Vector2 position)
         {
-            if (!isDrawingFirstFrame) return;
+            if (conf.PositionsMigrated || !isDrawingFirstFrame) return;
 
-            var pos = ImGui.GetWindowPos();
+            var pos = ImGui.GetWindowPos() - ImGui.GetMainViewport().Pos;
             position.X = pos.X;
             position.Y = pos.Y;
         }
