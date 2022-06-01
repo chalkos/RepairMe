@@ -19,6 +19,10 @@ Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be 
 
 ## Changelog
 
+* v1.0.1.9
+  * disable in PvP zones
+  * hide during mid-fight cutscenes
+  * fix position settings in some situations (thanks dlt111 for the help debugging this!)
 * v1.0.1.8
   * fix a wrong spiritbond marker at 0% that was showing for equipment slots that have no item 
 * v1.0.1.7

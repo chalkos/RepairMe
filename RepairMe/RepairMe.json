@@ -16,5 +16,5 @@
         "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/image4.png"
     ],
     "IconUrl": "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/icon.png",
-    "Changelog": "* v1.0.1.8\n  * fix a wrong spiritbond marker at 0% that was showing for equipment slots that have no item \n"
+    "Changelog": "* v1.0.1.9\n  * disable in PvP zones\n  * hide during mid-fight cutscenes\n  * fix position settings in some situations (thanks dlt111 for the help debugging this!)"
 }
