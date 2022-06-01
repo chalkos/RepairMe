@@ -69,7 +69,6 @@ namespace RepairMe
         {
             if (ui == null) return;
 
-            ui.SettingsVisible = !ui.SettingsVisible;
             switch (eventHandler)
             {
                 case { IsOccupied: true }:
@@ -77,6 +76,9 @@ namespace RepairMe
                     break;
                 case { IsInPvPArea: true }:
                     Chat.PrintError("RepairMe is disabled while in a PvP area");
+                    break;
+                default:
+                    ui.SettingsVisible = !ui.SettingsVisible;
                     break;
             }
         }
