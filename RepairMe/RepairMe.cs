@@ -25,7 +25,6 @@ namespace RepairMe
         public RepairMe(DalamudPluginInterface pluginInterface)
         {
             DalamudInitialize(pluginInterface);
-            Resolver.Initialize();
 
             xivCommon = new XivCommonBase();
             equipmentScanner = new EquipmentScanner();
