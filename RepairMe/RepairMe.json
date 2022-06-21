@@ -16,5 +16,5 @@
         "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/image4.png"
     ],
     "IconUrl": "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/icon.png",
-    "Changelog": "* v1.0.1.9\n  * disable in PvP zones\n  * hide during mid-fight cutscenes\n  * fix position settings in some situations (thanks dlt111 for the help debugging this!)"
+    "Changelog": "* v1.0.1.10\n  * fix startup problem"
 }

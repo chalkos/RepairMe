@@ -19,6 +19,8 @@ Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be 
 
 ## Changelog
 
+* v1.0.1.10
+  * fix startup problem
 * v1.0.1.9
   * disable in PvP zones
   * hide during mid-fight cutscenes
