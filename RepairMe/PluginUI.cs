@@ -137,6 +137,8 @@ namespace RepairMe
 
                 longestOrientationLabel = OrientationLabels.Select(label => ImGui.CalcTextSize(label).X).Max() * 1.35f;
 
+                bool altCharacter = conf.AltCharacters.ContainsKey(ClientState.LocalContentId);
+
                 // bar condition
                 DrawConditionBar();
 
@@ -155,7 +157,10 @@ namespace RepairMe
                     conf.PercentSpiritbondShowDecimals, conf.PercentSpiritbondShowMinMax ? leastSpiritbond : null);
 
                 // alert condition critical
-                if ((isDrawingFirstFrame && !conf.PositionsMigrated) || UnlockedUiMode || condition <= conf.ThresholdConditionCritical)
+                if ((isDrawingFirstFrame && !conf.PositionsMigrated)
+                    || UnlockedUiMode
+                    || altCharacter && condition <= conf.ThresholdConditionCriticalAlt
+                    || !altCharacter && condition <= conf.ThresholdConditionCritical)
                     DrawAlert(conf.AlertConditionCriticalEnabled, conf.AlertConditionCriticalText,
                         AlertConditionCriticalWindow, AlertConditionCriticalWindowChild,
                         conf.AlertConditionCriticalColor, conf.AlertConditionCriticalBg,
@@ -163,14 +168,23 @@ namespace RepairMe
                         conf.AlertConditionCriticalShortcut ? ClickActionOpenRepairs : null);
 
                 // alert condition low
-                if ((isDrawingFirstFrame && !conf.PositionsMigrated) || UnlockedUiMode || condition <= conf.ThresholdConditionLow &&
-                    condition > conf.ThresholdConditionCritical)
+                if ((isDrawingFirstFrame && !conf.PositionsMigrated)
+                    || UnlockedUiMode
+                    || altCharacter
+                    && condition <= conf.ThresholdConditionLowAlt
+                    && condition > conf.ThresholdConditionCriticalAlt
+                    || !altCharacter
+                    && condition <= conf.ThresholdConditionLow
+                    && condition > conf.ThresholdConditionCritical
+                   )
                     DrawAlert(conf.AlertConditionLowEnabled, conf.AlertConditionLowText, AlertConditionLowWindow,
                         AlertConditionLowWindowChild, conf.AlertConditionLowColor, conf.AlertConditionLowBg,
                         ref position.AlertLowCondition, conf.AlertConditionLowShortcut ? ClickActionOpenRepairs : null);
 
                 // alert spiritbond full
-                if ((isDrawingFirstFrame && !conf.PositionsMigrated) || UnlockedUiMode || ThresholdSpiritbondFull <= spiritbond)
+                if ((isDrawingFirstFrame && !conf.PositionsMigrated)
+                    || UnlockedUiMode
+                    || ThresholdSpiritbondFull <= spiritbond)
                     DrawAlert(conf.AlertSpiritbondFullEnabled, conf.AlertSpiritbondFullText, AlertSpiritbondFullWindow,
                         AlertSpiritbondFullWindowChild, conf.AlertSpiritbondFullColor, conf.AlertSpiritbondFullBg,
                         ref position.AlertSpiritbond,
@@ -299,7 +313,10 @@ namespace RepairMe
                 MigratePositions(ref position.BarCondition);
                 CheckDrag(ref position.BarCondition);
 
-                if (condition <= conf.ThresholdConditionCritical)
+                bool altCharacter = conf.AltCharacters.ContainsKey(ClientState.LocalContentId);
+
+                if (altCharacter && condition <= conf.ThresholdConditionCriticalAlt
+                    || !altCharacter && condition <= conf.ThresholdConditionCritical)
                     ProgressBar(condition / 100f,
                         conf.BarConditionOrientation,
                         conf.BarConditionSize,
@@ -312,7 +329,8 @@ namespace RepairMe
                         conf.BarConditionBorderSize,
                         conf.BarConditionBorderColor
                     );
-                else if (condition <= conf.ThresholdConditionLow)
+                else if (altCharacter && condition <= conf.ThresholdConditionLowAlt
+                         || !altCharacter && condition <= conf.ThresholdConditionLow)
                     ProgressBar(condition / 100f,
                         conf.BarConditionOrientation,
                         conf.BarConditionSize,
@@ -806,9 +824,82 @@ namespace RepairMe
                     ColorPicker("Alert Critical Background##repairMe025", ref conf.AlertConditionCriticalBg);
                     ImGui.EndTable();
                 }
+
+                ImGui.Spacing();
             }
 
-            if (ImGui.CollapsingHeader("Spiritbond settings"))
+            if (ImGui.CollapsingHeader("Alternative condition settings##repairMe050"))
+            {
+                ImGui.Text("Configure alternative alert thresholds for specific characters");
+
+                ImGui.Spacing();
+                ImGui.Text("Alternative thresholds");
+                if (ImGui.SliderInt("Low threshold##repairMe052", ref conf.ThresholdConditionLowAlt, 0, 100, "%d%%"))
+                {
+                    if (conf.ThresholdConditionLowAlt <= conf.ThresholdConditionCriticalAlt)
+                        conf.ThresholdConditionLowAlt = conf.ThresholdConditionCriticalAlt + 1;
+                    conf.Save();
+                }
+
+                if (ImGui.SliderInt("Critical threshold##repairMe053", ref conf.ThresholdConditionCriticalAlt, 0, 100,
+                        "%d%%"))
+                {
+                    if (conf.ThresholdConditionCriticalAlt >= conf.ThresholdConditionLowAlt)
+                        conf.ThresholdConditionCriticalAlt = conf.ThresholdConditionLowAlt - 1;
+                    conf.Save();
+                }
+
+                ImGui.Spacing();
+
+                if (conf.AltCharacters.Count > 0 && ImGui.BeginTable("##AltCharsrepairMe051", 3))
+                {
+                    ImGui.TableSetupColumn("##AltCharsrepairMe051-c1", ImGuiTableColumnFlags.WidthFixed,
+                        ImGui.CalcTextSize("8").X + ImGui.GetStyle().CellPadding.X * 2);
+#if DEBUG
+                    ImGui.TableSetupColumn("ID##AltCharsrepairMe051-c2", ImGuiTableColumnFlags.WidthFixed,
+                        ImGui.CalcTextSize("8888888888888888").X+ImGui.GetStyle().CellPadding.X*2);
+#endif
+                    ImGui.TableSetupColumn("Character##AltCharsrepairMe051-c3");
+                    ImGui.TableHeadersRow();
+
+                    ulong removal = 0;
+
+                    foreach (var altCharacter in conf.AltCharacters)
+                    {
+                        ImGui.TableNextColumn();
+                        if (ImGuiEx.IconButton(FontAwesomeIcon.Times, "Shift+Click to remove from list")
+                            && Keys[VirtualKey.SHIFT])
+                            removal = altCharacter.Key;
+#if DEBUG
+                        ImGui.TableNextColumn();
+                        ImGui.Text($"{altCharacter.Key:X16}");
+#endif
+                        ImGui.TableNextColumn();
+                        ImGui.Text(altCharacter.Value);
+                    }
+
+                    ImGui.EndTable();
+
+                    if (removal != 0 && conf.AltCharacters.ContainsKey(removal))
+                    {
+                        conf.AltCharacters.Remove(removal);
+                        conf.Save();
+                    }
+
+                    ImGui.Spacing();
+                }
+
+                if (ImGui.Button("Apply to current character##AltCharsrepairMe051") && ClientState.LocalPlayer != null)
+                {
+                    conf.AltCharacters[ClientState.LocalContentId] = ClientState.LocalPlayer!.Name + " @ " +
+                                                                     ClientState.LocalPlayer!.HomeWorld.GameData!.Name;
+                    conf.Save();
+                }
+
+                ImGui.Spacing();
+            }
+
+            if (ImGui.CollapsingHeader("Spiritbond settings##repairMe060"))
             {
                 if (ImGui.Checkbox("Show Bar##repairMe026", ref conf.BarSpiritbondEnabled))
                     conf.Save();
@@ -920,9 +1011,11 @@ namespace RepairMe
                     ImGui.TableNextColumn();
                     ImGui.EndTable();
                 }
+
+                ImGui.Spacing();
             }
 
-            if (ImGui.CollapsingHeader("Resolution/positioning settings##repairMe045", ImGuiTreeNodeFlags.DefaultOpen))
+            if (ImGui.CollapsingHeader("Resolution/positioning settings##repairMe045"))
             {
                 ImGui.Text("If you changed you resolution and want to copy position settings from other resolution");
 
@@ -969,6 +1062,8 @@ namespace RepairMe
                         positionUndo = null;
                     }
                 }
+
+                ImGui.Spacing();
             }
 
             ImGui.End();

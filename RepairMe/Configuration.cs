@@ -6,7 +6,6 @@ using static RepairMe.Dalamud;
 
 namespace RepairMe
 {
-
     [Serializable]
     public class PositionProfile
     {
@@ -18,7 +17,7 @@ namespace RepairMe
         public Vector2 AlertLowCondition = new Vector2(250, 50);
         public Vector2 AlertCriticalCondition = new Vector2(250, 75);
         public Vector2 BarCondition = new Vector2(50, 100);
-        
+
         public Vector2 BarSpiritbond = new Vector2(50, 150);
         public Vector2 PercentSpiritbond = new Vector2(250, 150);
         public Vector2 AlertSpiritbond = new Vector2(50, 200);
@@ -29,7 +28,7 @@ namespace RepairMe
             AlertLowCondition = other.AlertLowCondition;
             AlertCriticalCondition = other.AlertCriticalCondition;
             BarCondition = other.BarCondition;
-            
+
             BarSpiritbond = other.BarSpiritbond;
             PercentSpiritbond = other.PercentSpiritbond;
             AlertSpiritbond = other.AlertSpiritbond;
@@ -46,9 +45,14 @@ namespace RepairMe
 
         public bool HideUiWhenOccupied = true;
 
+        // alternative config
+        public Dictionary<ulong, string> AltCharacters = new();
+
         // thresholds stuff
         public int ThresholdConditionLow = 50;
         public int ThresholdConditionCritical = 30;
+        public int ThresholdConditionLowAlt = 50;
+        public int ThresholdConditionCriticalAlt = 30;
 
         // bar - condition
         public bool BarConditionEnabled = true;
@@ -113,7 +117,7 @@ namespace RepairMe
         public Vector4 AlertSpiritbondFullColor = new(0.25f, 0.9f, 0.95f, 1);
         public Vector4 AlertSpiritbondFullBg = new(1, 1, 1, 0.2f);
         public bool AlertSpiritbondShortcut = false;
-        
+
         // positioning
         public Dictionary<string, PositionProfile> PositionProfiles = new();
 
