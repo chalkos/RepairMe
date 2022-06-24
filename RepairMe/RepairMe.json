@@ -16,5 +16,5 @@
         "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/image4.png"
     ],
     "IconUrl": "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/icon.png",
-    "Changelog": "* v1.0.1.10\n  * fix startup problem"
+    "Changelog": "* v1.0.1.11\n  * add an alternative alert config that can be linked to specific characters\n* v1.0.1.10\n  * fix startup problem"
 }
