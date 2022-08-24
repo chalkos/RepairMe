@@ -1,8 +1,6 @@
 ﻿using System.Reflection;
 using Dalamud.Game.Command;
 using Dalamud.Plugin;
-using FFXIVClientStructs;
-using XivCommon;
 using static RepairMe.Dalamud;
 
 namespace RepairMe
@@ -14,7 +12,6 @@ namespace RepairMe
         private EventHandler? eventHandler;
 
         private PluginUi? ui;
-        private XivCommonBase? xivCommon;
 
         // When loaded by LivePluginLoader, the executing assembly will be wrong.
         // Supplying this property allows LivePluginLoader to supply the correct location, so that
@@ -26,10 +23,9 @@ namespace RepairMe
         {
             DalamudInitialize(pluginInterface);
 
-            xivCommon = new XivCommonBase();
             equipmentScanner = new EquipmentScanner();
             eventHandler = new EventHandler(equipmentScanner);
-            ui = new PluginUi(eventHandler, xivCommon);
+            ui = new PluginUi(eventHandler);
 
             Commands.AddHandler(CommandName, new CommandInfo(OnCommand)
             {
@@ -45,7 +41,6 @@ namespace RepairMe
         public void Dispose()
         {
             ui?.Dispose();
-            xivCommon?.Dispose();
             eventHandler?.Dispose();
             equipmentScanner?.Dispose();
 

@@ -5,9 +5,9 @@ using System.Numerics;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface;
 using Dalamud.Logging;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Lumina.Excel;
-using XivCommon;
 using static RepairMe.Dalamud;
 
 namespace RepairMe
@@ -64,7 +64,6 @@ namespace RepairMe
         private bool testingMode = true;
         private bool isDragging = false;
         private bool isDrawingFirstFrame = true;
-        private XivCommonBase xivCommon;
 
         private ExcelSheet<Lumina.Excel.GeneratedSheets.Item> items =
             GameData.GetExcelSheet<Lumina.Excel.GeneratedSheets.Item>()!;
@@ -75,10 +74,9 @@ namespace RepairMe
         private const uint GeneralActionIdRepair = 6;
         private const uint GeneralActionIdMateriaExtraction = 14;
 
-        public PluginUi(EventHandler eventHandler, XivCommonBase xivCommon)
+        public PluginUi(EventHandler eventHandler)
         {
             this.eventHandler = eventHandler;
-            this.xivCommon = xivCommon;
         }
 
         public bool SettingsVisible
@@ -207,16 +205,28 @@ namespace RepairMe
             }
         }
 
-        private void ClickActionOpenRepairs()
+        private unsafe void ClickActionOpenRepairs()
         {
-            string name = generalActions.GetRow(GeneralActionIdRepair)!.Name;
-            xivCommon.Functions.Chat.SendMessage($"/gaction \"{name}\"");
+            try
+            {
+                ActionManager.Instance()->UseAction(ActionType.General, GeneralActionIdRepair);
+            }
+            catch (Exception e)
+            {
+                PluginLog.Error("Could not use general action repair", e);
+            }
         }
 
-        private void ClickActionOpenMateriaExtraction()
+        private unsafe void ClickActionOpenMateriaExtraction()
         {
-            string name = generalActions.GetRow(GeneralActionIdMateriaExtraction)!.Name;
-            xivCommon.Functions.Chat.SendMessage($"/gaction \"{name}\"");
+            try
+            {
+                ActionManager.Instance()->UseAction(ActionType.General, GeneralActionIdMateriaExtraction);
+            }
+            catch (Exception e)
+            {
+                PluginLog.Error("Could not use general action materia extraction", e);
+            }
         }
 
         private void CheckDrag(ref Vector2 position)

@@ -19,6 +19,8 @@ Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be 
 
 ## Changelog
 
+* v1.0.1.13
+  * remove dependency on XIVCommons
 * v1.0.1.12
   * update to .net6 and api 7
 * v1.0.1.11
