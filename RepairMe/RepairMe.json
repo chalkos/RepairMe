@@ -1,14 +1,11 @@
 {
     "Author": "Chalkos",
     "Name": "RepairMe",
+    "DalamudApiLevel": 7,
     "Punchline": "Never forget to repair & extract materia again!",
-    "Description": "Helps you notice when your gear needs to be repaired or has materia to be extracted. /repairme to config",
+    "Description": "Helps you notice when your gear needs to be repaired or has materia to be extracted.",
     "RepoUrl": "https://github.com/chalkos/RepairMe",
-    "Tags": ["Repair", "Materia", "Spiritbond", "Alert"],
-    "InternalName": "RepairMe",
-    "ApplicableVersion": "any",
-    "DalamudApiLevel": 6,
-    "LoadPriority": 0,
+    "Tags": ["Repair","Materia","Spiritbond","Alert","Condition","Gear"],
     "ImageUrls": [
         "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/image1.png",
         "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/image2.png",
@@ -16,5 +13,5 @@
         "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/image4.png"
     ],
     "IconUrl": "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/icon.png",
-    "Changelog": "* v1.0.1.11\n  * add an alternative alert config that can be linked to specific characters\n* v1.0.1.10\n  * fix startup problem"
+    "Changelog": "Update to .net6 and api7"
 }
