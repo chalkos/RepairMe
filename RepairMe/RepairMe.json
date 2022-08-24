@@ -7,11 +7,10 @@
     "RepoUrl": "https://github.com/chalkos/RepairMe",
     "Tags": ["Repair","Materia","Spiritbond","Alert","Condition","Gear"],
     "ImageUrls": [
-        "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/image1.png",
-        "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/image2.png",
-        "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/image3.png",
-        "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/image4.png"
+        "https://raw.githubusercontent.com/goatcorp/DalamudPluginsD17/main/stable/RepairMe/images/image1.png",
+        "https://raw.githubusercontent.com/goatcorp/DalamudPluginsD17/main/stable/RepairMe/images/image2.png",
+        "https://raw.githubusercontent.com/goatcorp/DalamudPluginsD17/main/stable/RepairMe/images/image3.png",
+        "https://raw.githubusercontent.com/goatcorp/DalamudPluginsD17/main/stable/RepairMe/images/image4.png"
     ],
-    "IconUrl": "https://raw.githubusercontent.com/chalkos/RepairMe/api4/images/icon.png",
-    "Changelog": "Update to .net6 and api7"
+    "IconUrl": "https://raw.githubusercontent.com/goatcorp/DalamudPluginsD17/main/stable/RepairMe/images/icon.png"
 }
