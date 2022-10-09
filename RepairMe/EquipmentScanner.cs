@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Dalamud.Game;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using Lumina.Excel.GeneratedSheets;
 
 #if DEBUG
 using Dalamud.Logging;
@@ -18,6 +19,8 @@ namespace RepairMe
         public readonly float LowestConditionPercent;
         public readonly float LowestSpiritbondPercent;
         public readonly float HighestSpiritbondPercent;
+        public uint classJob;
+        public byte classJobCategory;
 
         public EquipmentData(uint[] idValues, ushort[] conditionValues, ushort[] spiritbondValues)
         {
@@ -25,6 +28,8 @@ namespace RepairMe
             Condition = new ushort[EquipmentScanner.EquipmentContainerSize];
             Spiritbond = new ushort[EquipmentScanner.EquipmentContainerSize];
             SpiritbondPercents = new float[EquipmentScanner.EquipmentContainerSize];
+            classJob = Dalamud.ClientState.LocalPlayer!.ClassJob.Id;
+            classJobCategory = (byte) Dalamud.GameData.GetExcelSheet<ClassJob>()!.GetRow(classJob)!.ClassJobCategory.Row;
 
             LowestConditionPercent = 60000;
             LowestSpiritbondPercent = 10000;
@@ -79,7 +84,7 @@ namespace RepairMe
             "ring2"
         };
 
-        public Action? NotificationTarget { private get; set; }
+        public System.Action? NotificationTarget { private get; set; }
 
         private InventoryManager* inventoryManager;
         private InventoryContainer* equipmentContainer;

@@ -45,6 +45,8 @@ namespace RepairMe
 
         public bool HideUiWhenOccupied = true;
 
+        public bool ToggleVisibility = true;
+
         // alternative config
         public Dictionary<ulong, string> AltCharacters = new();
 
@@ -53,6 +55,11 @@ namespace RepairMe
         public int ThresholdConditionCritical = 30;
         public int ThresholdConditionLowAlt = 50;
         public int ThresholdConditionCriticalAlt = 30;
+
+        // Job Settings
+        public bool ADV = true;
+        public bool DOL = true;
+        public bool DOH = true;
 
         // bar - condition
         public bool BarConditionEnabled = true;

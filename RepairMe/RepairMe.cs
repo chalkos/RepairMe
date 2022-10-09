@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Dalamud.Game.Command;
+using Dalamud.Logging;
 using Dalamud.Plugin;
 using static RepairMe.Dalamud;
 
@@ -8,8 +9,10 @@ namespace RepairMe
     public sealed class RepairMe : IDalamudPlugin
     {
         private const string CommandName = "/repairme";
+        private const string CommandToggle = "/repairme toggle";
         private EquipmentScanner? equipmentScanner;
         private EventHandler? eventHandler;
+        private Configuration conf => Configuration.GetOrLoad();
 
         private PluginUi? ui;
 
@@ -32,6 +35,11 @@ namespace RepairMe
                 HelpMessage = "RepairMe plugin configuration"
             });
 
+            Commands.AddHandler(CommandToggle, new CommandInfo(OnCommand)
+            {
+                HelpMessage = "Toggle visibility for all enabled RepairMe elements without changing config"
+            });
+
             PluginInterface.UiBuilder.Draw += DrawUi;
             PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUi;
 
@@ -45,13 +53,25 @@ namespace RepairMe
             equipmentScanner?.Dispose();
 
             Commands.RemoveHandler(CommandName);
+            Commands.RemoveHandler(CommandToggle);
             PluginInterface.UiBuilder.Draw -= DrawUi;
             PluginInterface.UiBuilder.OpenConfigUi -= DrawConfigUi;
         }
 
         private void OnCommand(string command, string args)
         {
-            DrawConfigUi();
+            switch (args.ToLower())
+            {
+                case "toggle":
+                    conf!.ToggleVisibility = !conf!.ToggleVisibility;
+                    conf.Save();
+                    break;
+
+                default:
+                    DrawConfigUi();
+                    break;
+
+            }
         }
 
         private void DrawUi()

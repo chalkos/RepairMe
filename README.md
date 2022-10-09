@@ -5,6 +5,7 @@ Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be 
 ## Commands
 
 - `/repairme` - opens the config window
+- `/repairme toggle` - toggle visibility on all RepairMe elements without changing Config
 
 ## Features
 
@@ -18,7 +19,8 @@ Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be 
 - Almost all text and background colors can be configured
 
 ## Changelog
-
+* v1.0.1.14
+    * add full visibility toggle command and config checkbox and options for enabling visibility based on Job Category
 * v1.0.1.13
   * remove dependency on XIVCommons
 * v1.0.1.12

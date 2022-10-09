@@ -8,6 +8,7 @@ using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Lumina.Excel;
+using Lumina.Excel.GeneratedSheets;
 using static RepairMe.Dalamud;
 
 namespace RepairMe
@@ -53,6 +54,7 @@ namespace RepairMe
         private PositionProfile position;
         private PositionProfile? positionUndo = null;
         private readonly EventHandler eventHandler;
+        private byte? classJobCategory;
 
         // non-config ui fields
         private bool UnlockedUiModeCheckbox = false;
@@ -114,6 +116,7 @@ namespace RepairMe
                 }
 
                 position = positionProfile;
+                classJobCategory = eventHandler.EquipmentScannerLastEquipmentData!.Value.classJobCategory;
 
                 if (SettingsVisible && testingMode)
                 {
@@ -137,56 +140,65 @@ namespace RepairMe
 
                 bool altCharacter = conf.AltCharacters.ContainsKey(ClientState.LocalContentId);
 
-                // bar condition
-                DrawConditionBar();
+                // Show enabled elements only if checkboxes for Toggle Visiblity and the relevant Job Category for the player's current job are enabled
+                // Enabled elements are always visible if Config window is open and Testing Mode is enabled
+                if ((SettingsVisible && testingMode) ||
+                    (conf.ToggleVisibility &&
+                        (conf.ADV && (classJobCategory == 30 || classJobCategory == 31) ||
+                        conf.DOL && classJobCategory == 32 ||
+                        conf.DOH && classJobCategory == 33)))
+                {
+                    // bar condition
+                    DrawConditionBar();
 
-                // bar spiritbond
-                DrawSpiritbondBar();
+                    // bar spiritbond
+                    DrawSpiritbondBar();
 
-                // percent condition
-                DrawPercent(conf.PercentConditionEnabled, condition, PercentConditionWindow,
-                    PercentConditionWindowChild, conf.PercentConditionColor, conf.PercentConditionBg,
-                    ref position.PercentCondition, conf.PercentConditionShowPercent, conf.PercentConditionShowDecimals);
+                    // percent condition
+                    DrawPercent(conf.PercentConditionEnabled, condition, PercentConditionWindow,
+                        PercentConditionWindowChild, conf.PercentConditionColor, conf.PercentConditionBg,
+                        ref position.PercentCondition, conf.PercentConditionShowPercent, conf.PercentConditionShowDecimals);
 
-                // percent spiritbond
-                DrawPercent(conf.PercentSpiritbondEnabled, spiritbond, PercentSpiritbondWindow,
-                    PercentSpiritbondWindowChild, conf.PercentSpiritbondColor, conf.PercentSpiritbondBg,
-                    ref position.PercentSpiritbond, conf.PercentSpiritbondShowPercent,
-                    conf.PercentSpiritbondShowDecimals, conf.PercentSpiritbondShowMinMax ? leastSpiritbond : null);
+                    // percent spiritbond
+                    DrawPercent(conf.PercentSpiritbondEnabled, spiritbond, PercentSpiritbondWindow,
+                        PercentSpiritbondWindowChild, conf.PercentSpiritbondColor, conf.PercentSpiritbondBg,
+                        ref position.PercentSpiritbond, conf.PercentSpiritbondShowPercent,
+                        conf.PercentSpiritbondShowDecimals, conf.PercentSpiritbondShowMinMax ? leastSpiritbond : null);
 
-                // alert condition critical
-                if ((isDrawingFirstFrame && !conf.PositionsMigrated)
-                    || UnlockedUiMode
-                    || altCharacter && condition <= conf.ThresholdConditionCriticalAlt
-                    || !altCharacter && condition <= conf.ThresholdConditionCritical)
-                    DrawAlert(conf.AlertConditionCriticalEnabled, conf.AlertConditionCriticalText,
-                        AlertConditionCriticalWindow, AlertConditionCriticalWindowChild,
-                        conf.AlertConditionCriticalColor, conf.AlertConditionCriticalBg,
-                        ref position.AlertCriticalCondition,
-                        conf.AlertConditionCriticalShortcut ? ClickActionOpenRepairs : null);
+                    // alert condition critical
+                    if ((isDrawingFirstFrame && !conf.PositionsMigrated)
+                        || UnlockedUiMode
+                        || altCharacter && condition <= conf.ThresholdConditionCriticalAlt
+                        || !altCharacter && condition <= conf.ThresholdConditionCritical)
+                        DrawAlert(conf.AlertConditionCriticalEnabled, conf.AlertConditionCriticalText,
+                            AlertConditionCriticalWindow, AlertConditionCriticalWindowChild,
+                            conf.AlertConditionCriticalColor, conf.AlertConditionCriticalBg,
+                            ref position.AlertCriticalCondition,
+                            conf.AlertConditionCriticalShortcut ? ClickActionOpenRepairs : null);
 
-                // alert condition low
-                if ((isDrawingFirstFrame && !conf.PositionsMigrated)
-                    || UnlockedUiMode
-                    || altCharacter
-                    && condition <= conf.ThresholdConditionLowAlt
-                    && condition > conf.ThresholdConditionCriticalAlt
-                    || !altCharacter
-                    && condition <= conf.ThresholdConditionLow
-                    && condition > conf.ThresholdConditionCritical
-                   )
-                    DrawAlert(conf.AlertConditionLowEnabled, conf.AlertConditionLowText, AlertConditionLowWindow,
-                        AlertConditionLowWindowChild, conf.AlertConditionLowColor, conf.AlertConditionLowBg,
-                        ref position.AlertLowCondition, conf.AlertConditionLowShortcut ? ClickActionOpenRepairs : null);
+                    // alert condition low
+                    if ((isDrawingFirstFrame && !conf.PositionsMigrated)
+                        || UnlockedUiMode
+                        || altCharacter
+                        && condition <= conf.ThresholdConditionLowAlt
+                        && condition > conf.ThresholdConditionCriticalAlt
+                        || !altCharacter
+                        && condition <= conf.ThresholdConditionLow
+                        && condition > conf.ThresholdConditionCritical
+                       )
+                        DrawAlert(conf.AlertConditionLowEnabled, conf.AlertConditionLowText, AlertConditionLowWindow,
+                            AlertConditionLowWindowChild, conf.AlertConditionLowColor, conf.AlertConditionLowBg,
+                            ref position.AlertLowCondition, conf.AlertConditionLowShortcut ? ClickActionOpenRepairs : null);
 
-                // alert spiritbond full
-                if ((isDrawingFirstFrame && !conf.PositionsMigrated)
-                    || UnlockedUiMode
-                    || ThresholdSpiritbondFull <= spiritbond)
-                    DrawAlert(conf.AlertSpiritbondFullEnabled, conf.AlertSpiritbondFullText, AlertSpiritbondFullWindow,
-                        AlertSpiritbondFullWindowChild, conf.AlertSpiritbondFullColor, conf.AlertSpiritbondFullBg,
-                        ref position.AlertSpiritbond,
-                        conf.AlertSpiritbondShortcut ? ClickActionOpenMateriaExtraction : null);
+                    // alert spiritbond full
+                    if ((isDrawingFirstFrame && !conf.PositionsMigrated)
+                        || UnlockedUiMode
+                        || ThresholdSpiritbondFull <= spiritbond)
+                        DrawAlert(conf.AlertSpiritbondFullEnabled, conf.AlertSpiritbondFullText, AlertSpiritbondFullWindow,
+                            AlertSpiritbondFullWindowChild, conf.AlertSpiritbondFullColor, conf.AlertSpiritbondFullBg,
+                            ref position.AlertSpiritbond,
+                            conf.AlertSpiritbondShortcut ? ClickActionOpenMateriaExtraction : null);
+                }
 
                 DrawSettingsWindow();
                 DrawDebugWindow();
@@ -589,14 +601,14 @@ namespace RepairMe
         }
 
         private void DrawAlert(bool alertEnabled, string text, string alertWindow, string alertWindowChild,
-            Vector4 alertColor, Vector4 alertBg, ref Vector2 alertPosition, Action? clickAction)
+            Vector4 alertColor, Vector4 alertBg, ref Vector2 alertPosition, System.Action? clickAction)
         {
             DrawText(alertEnabled, text, true, alertWindow, alertWindowChild,
                 alertColor, alertBg, ref alertPosition, clickAction);
         }
 
         private void DrawText(bool enabled, string text, bool isAlert, string window, string windowChild, Vector4 color,
-            Vector4 bg, ref Vector2 position, Action? clickAction)
+            Vector4 bg, ref Vector2 position, System.Action? clickAction)
         {
             if (conf.PositionsMigrated && !enabled) return;
 
@@ -670,6 +682,9 @@ namespace RepairMe
                 return;
             }
 
+            if (ImGui.Checkbox("Toggle Visibility##repairMe048", ref conf.ToggleVisibility)) conf.Save();
+
+            ImGui.SameLine();
             if (ImGui.Checkbox("Move UI##repairMe001", ref UnlockedUiModeCheckbox)) conf.Save();
 
             ImGui.SameLine();
@@ -1023,6 +1038,19 @@ namespace RepairMe
                 }
 
                 ImGui.Spacing();
+            }
+
+            if (ImGui.CollapsingHeader("Job Settings##repairme047"))
+            {
+                ImGui.Text("Toggle whether enabled RepairMe elements are visible based on Job Category");
+                if (ImGui.Checkbox("DoW/M##repairMe047.1", ref conf.ADV))
+                    conf.Save();
+
+                if (ImGui.Checkbox("DoL##repairMe047.2", ref conf.DOL))
+                    conf.Save();
+
+                if (ImGui.Checkbox("DoH##repairMe047.3", ref conf.DOH))
+                    conf.Save();
             }
 
             if (ImGui.CollapsingHeader("Resolution/positioning settings##repairMe045"))
