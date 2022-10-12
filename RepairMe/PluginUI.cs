@@ -116,7 +116,7 @@ namespace RepairMe
                 }
 
                 position = positionProfile;
-                classJobCategory = eventHandler.EquipmentScannerLastEquipmentData!.Value.classJobCategory;
+                classJobCategory = (byte) GameData.GetExcelSheet<ClassJob>()!.GetRow(ClientState.LocalPlayer!.ClassJob.Id)!.ClassJobCategory.Row;
 
                 if (SettingsVisible && testingMode)
                 {

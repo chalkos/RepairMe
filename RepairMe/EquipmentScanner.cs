@@ -19,8 +19,8 @@ namespace RepairMe
         public readonly float LowestConditionPercent;
         public readonly float LowestSpiritbondPercent;
         public readonly float HighestSpiritbondPercent;
-        public uint classJob;
-        public byte classJobCategory;
+        //public uint classJob;
+        //public byte classJobCategory;
 
         public EquipmentData(uint[] idValues, ushort[] conditionValues, ushort[] spiritbondValues)
         {
@@ -28,8 +28,8 @@ namespace RepairMe
             Condition = new ushort[EquipmentScanner.EquipmentContainerSize];
             Spiritbond = new ushort[EquipmentScanner.EquipmentContainerSize];
             SpiritbondPercents = new float[EquipmentScanner.EquipmentContainerSize];
-            classJob = Dalamud.ClientState.LocalPlayer!.ClassJob.Id;
-            classJobCategory = (byte) Dalamud.GameData.GetExcelSheet<ClassJob>()!.GetRow(classJob)!.ClassJobCategory.Row;
+            //classJob = Dalamud.ClientState.LocalPlayer!.ClassJob.Id;
+            //classJobCategory = (byte) Dalamud.GameData.GetExcelSheet<ClassJob>()!.GetRow(classJob)!.ClassJobCategory.Row;
 
             LowestConditionPercent = 60000;
             LowestSpiritbondPercent = 10000;
