@@ -116,7 +116,7 @@ namespace RepairMe
                 }
 
                 position = positionProfile;
-                classJobCategory = eventHandler.EquipmentScannerLastEquipmentData!.Value.classJobCategory;
+                classJobCategory = eventHandler.EquipmentScannerLastEquipmentData?.classJobCategory ?? 0;
 
                 if (SettingsVisible && testingMode)
                 {
