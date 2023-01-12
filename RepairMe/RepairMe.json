@@ -1,7 +1,7 @@
 {
     "Author": "Chalkos",
     "Name": "RepairMe",
-    "DalamudApiLevel": 7,
+    "DalamudApiLevel": 8,
     "Punchline": "Never forget to repair & extract materia again!",
     "Description": "Helps you notice when your gear needs to be repaired or has materia to be extracted.",
     "RepoUrl": "https://github.com/chalkos/RepairMe",
