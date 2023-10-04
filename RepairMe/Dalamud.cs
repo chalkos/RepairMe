@@ -1,13 +1,6 @@
-﻿using Dalamud.Data;
-using Dalamud.Game;
-using Dalamud.Game.ClientState;
-using Dalamud.Game.ClientState.Conditions;
-using Dalamud.Game.ClientState.Keys;
-using Dalamud.Game.ClientState.Objects;
-using Dalamud.Game.Command;
-using Dalamud.Game.Gui;
-using Dalamud.IoC;
+﻿using Dalamud.IoC;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 
 namespace RepairMe
 {
@@ -18,18 +11,20 @@ namespace RepairMe
 
         // @formatter:off
         [PluginService][RequiredVersion("1.0")] public static DalamudPluginInterface PluginInterface { get; private set; } = null!;
-        [PluginService][RequiredVersion("1.0")] public static CommandManager         Commands        { get; private set; } = null!;
+        [PluginService][RequiredVersion("1.0")] public static ICommandManager         Commands        { get; private set; } = null!;
         //[PluginService][RequiredVersion("1.0")] public static SigScanner             SigScanner      { get; private set; } = null!;
-        [PluginService][RequiredVersion("1.0")] public static DataManager            GameData        { get; private set; } = null!;
-        [PluginService][RequiredVersion("1.0")] public static ClientState            ClientState     { get; private set; } = null!;
-        [PluginService][RequiredVersion("1.0")] public static ChatGui                Chat            { get; private set; } = null!;
+        [PluginService][RequiredVersion("1.0")] public static IDataManager            GameData        { get; private set; } = null!;
+        [PluginService][RequiredVersion("1.0")] public static IClientState            ClientState     { get; private set; } = null!;
+        [PluginService][RequiredVersion("1.0")] public static IChatGui                Chat            { get; private set; } = null!;
         //[PluginService][RequiredVersion("1.0")] public static SeStringManager        SeStrings       { get; private set; } = null!;
         //[PluginService][RequiredVersion("1.0")] public static ChatHandlers           ChatHandlers    { get; private set; } = null!;
-        [PluginService][RequiredVersion("1.0")] public static Framework              Framework       { get; private set; } = null!;
+        [PluginService][RequiredVersion("1.0")] public static IFramework              Framework       { get; private set; } = null!;
         //[PluginService][RequiredVersion("1.0")] public static GameNetwork            Network         { get; private set; } = null!;
-        [PluginService][RequiredVersion("1.0")] public static Condition              Conditions      { get; private set; } = null!;
-        [PluginService][RequiredVersion("1.0")] public static KeyState               Keys            { get; private set; } = null!;
-        [PluginService][RequiredVersion("1.0")] public static GameGui                GameGui         { get; private set; } = null!;
+        [PluginService][RequiredVersion("1.0")] public static ICondition              Conditions      { get; private set; } = null!;
+        [PluginService][RequiredVersion("1.0")] public static IKeyState               Keys            { get; private set; } = null!;
+        [PluginService][RequiredVersion("1.0")] public static IGameGui                GameGui         { get; private set; } = null!;
+        [PluginService][RequiredVersion("1.0")] public static IPluginLog              Log             { get; private set; } = null!;
+        [PluginService][RequiredVersion("1.0")] public static IGameInteropProvider    Hook            { get; private set; } = null!;
         //[PluginService][RequiredVersion("1.0")] public static FlyTextGui             FlyTexts        { get; private set; } = null!;
         //[PluginService][RequiredVersion("1.0")] public static ToastGui               Toasts          { get; private set; } = null!;
         //[PluginService][RequiredVersion("1.0")] public static JobGauges              Gauges          { get; private set; } = null!;

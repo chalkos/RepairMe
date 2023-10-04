@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface;
+using Dalamud.Interface.Utility;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
@@ -201,7 +202,7 @@ namespace RepairMe
             }
             catch (Exception ex)
             {
-                PluginLog.Error(ex, "prevented GUI crash");
+                Log.Error(ex, "prevented GUI crash");
             }
         }
 
@@ -209,11 +210,11 @@ namespace RepairMe
         {
             try
             {
-                ActionManager.Instance()->UseAction(ActionType.General, GeneralActionIdRepair);
+                ActionManager.Instance()->UseAction(ActionType.GeneralAction, GeneralActionIdRepair);
             }
             catch (Exception e)
             {
-                PluginLog.Error("Could not use general action repair", e);
+                Log.Error("Could not use general action repair", e);
             }
         }
 
@@ -221,15 +222,15 @@ namespace RepairMe
         {
             try
             {
-                ActionManager.Instance()->UseAction(ActionType.General, GeneralActionIdMateriaExtraction);
+                ActionManager.Instance()->UseAction(ActionType.GeneralAction, GeneralActionIdMateriaExtraction);
             }
             catch (Exception e)
             {
-                PluginLog.Error("Could not use general action materia extraction", e);
+                Log.Error("Could not use general action materia extraction", e);
             }
         }
 
-        private void CheckDrag(ref Vector2 position)
+        private void CheckDrag(ref Vector2 pos)
         {
             // https://github.com/UnknownX7/QoLBar/blob/f73515daf812058d0af58cdbd0942249474e9cf8/UI/BarUI.cs
 
@@ -253,8 +254,8 @@ namespace RepairMe
 
                 var delta = ImGui.GetMouseDragDelta(ImGuiMouseButton.Left, 0);
                 ImGui.ResetMouseDragDelta();
-                position.X += delta.X;
-                position.Y += delta.Y;
+                pos.X += delta.X;
+                pos.Y += delta.Y;
             }
 
             // Stopped dragging
@@ -265,7 +266,7 @@ namespace RepairMe
             }
         }
 
-        private ImGuiWindowFlags PrepareWindow(Vector2 position)
+        private ImGuiWindowFlags PrepareWindow(Vector2 pos)
         {
             var wFlags = ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse |
                          ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.AlwaysAutoResize |
@@ -274,7 +275,7 @@ namespace RepairMe
             ImGuiHelpers.ForceNextWindowMainViewport();
 
             if (conf.PositionsMigrated && !isDragging)
-                ImGui.SetNextWindowPos(ImGui.GetMainViewport().Pos + position);
+                ImGui.SetNextWindowPos(ImGui.GetMainViewport().Pos + pos);
 
             if (UnlockedUiMode) return wFlags;
 

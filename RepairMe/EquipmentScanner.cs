@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using Dalamud.Game;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 
 #if DEBUG
@@ -132,9 +133,9 @@ namespace RepairMe
             Dalamud.ClientState.LeavePvP -= EnableScanning;
         }
 
-        private void ClientStateOnLogin(object? sender, EventArgs e) => EnableScanning();
+        private void ClientStateOnLogin() => EnableScanning();
 
-        private void ClientStateOnLogout(object? sender, EventArgs e) => DisableScanning();
+        private void ClientStateOnLogout() => DisableScanning();
 
         private void EnableScanning()
         {
@@ -150,7 +151,7 @@ namespace RepairMe
             equipmentInventoryItem = null;
         }
 
-        private void GetConditionInfo(Framework framework)
+        private void GetConditionInfo(IFramework framework)
         {
 #if DEBUG
             bm.Restart();

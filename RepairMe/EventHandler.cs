@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Logging;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using static RepairMe.Dalamud;
@@ -25,12 +26,12 @@ namespace RepairMe
                                 && !IsOccupied;
 
         public bool IsOccupied => conf.HideUiWhenOccupied && (
-            Conditions[ConditionFlag.Occupied]
-            || Conditions[ConditionFlag.OccupiedInCutSceneEvent]
-            || Conditions[ConditionFlag.OccupiedSummoningBell]
-            || Conditions[ConditionFlag.OccupiedInQuestEvent]
-            || Conditions[ConditionFlag.Occupied38]
-            || Conditions[ConditionFlag.OccupiedInEvent]);
+            Dalamud.Conditions[ConditionFlag.Occupied]
+            || Dalamud.Conditions[ConditionFlag.OccupiedInCutSceneEvent]
+            || Dalamud.Conditions[ConditionFlag.OccupiedSummoningBell]
+            || Dalamud.Conditions[ConditionFlag.OccupiedInQuestEvent]
+            || Dalamud.Conditions[ConditionFlag.Occupied38]
+            || Dalamud.Conditions[ConditionFlag.OccupiedInEvent]);
 
         public bool IsInPvPArea => GameMain.IsInPvPArea();
 
@@ -47,7 +48,7 @@ namespace RepairMe
                 }
                 catch (Exception e1)
                 {
-                    PluginLog.Debug(e1, "NowLoading is being problematic");
+                    Log.Debug(e1, "NowLoading is being problematic");
                     try
                     {
                         SetAddonNowLoading();
@@ -55,7 +56,7 @@ namespace RepairMe
                     }
                     catch (Exception e2)
                     {
-                        PluginLog.Debug(e2, "NowLoading is nowhere to be found");
+                        Log.Debug(e2, "NowLoading is nowhere to be found");
                         return false;
                     }
                 }
@@ -90,13 +91,13 @@ namespace RepairMe
             eventLoopTokenSource?.Dispose();
         }
 
-        private void ClientStateOnOnLogin(object? sender, EventArgs e)
+        private void ClientStateOnOnLogin()
         {
             SetAddonNowLoading();
             Notify();
         }
 
-        private void ClientStateOnOnLogout(object? sender, EventArgs e)
+        private void ClientStateOnOnLogout()
         {
             Block();
         }
@@ -124,7 +125,7 @@ namespace RepairMe
                     {
                         if (exception is OperationCanceledException || exception is ObjectDisposedException)
                             continue;
-                        PluginLog.Error(exception, "RepairMe stopped unexpectedly. Restart it to continue using it.");
+                        Log.Error(exception, "RepairMe stopped unexpectedly. Restart it to continue using it.");
                     }
                 }, TaskContinuationOptions.OnlyOnFaulted);
         }
@@ -139,7 +140,7 @@ namespace RepairMe
 
                     EquipmentScannerLastEquipmentData = equipmentScanner.BuildEquipmentData;
 #if DEBUG
-                    PluginLog.Information($"RepairMe update @ {DateTime.Now:HH:mm:ss}");
+                    Log.Information($"RepairMe update @ {DateTime.Now:HH:mm:ss}");
 #endif
 
                     // limits the equipment refreshes to 1 per CooldownMilliseconds but still updating immediately when
@@ -153,7 +154,7 @@ namespace RepairMe
                 if (e is OperationCanceledException or ObjectDisposedException)
                     throw;
 
-                PluginLog.Fatal(e, "prevented EventHandler crash");
+                Log.Fatal(e, "prevented EventHandler crash");
             }
         }
     }
