@@ -5,11 +5,9 @@ using System.Numerics;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
-using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Lumina.Excel;
-using static RepairMe.Dalamud;
 
 namespace RepairMe
 {
@@ -67,10 +65,10 @@ namespace RepairMe
         private bool isDrawingFirstFrame = true;
 
         private ExcelSheet<Lumina.Excel.GeneratedSheets.Item> items =
-            GameData.GetExcelSheet<Lumina.Excel.GeneratedSheets.Item>()!;
+            RepairMe.GameData.GetExcelSheet<Lumina.Excel.GeneratedSheets.Item>()!;
 
         private ExcelSheet<Lumina.Excel.GeneratedSheets.GeneralAction> generalActions =
-            GameData.GetExcelSheet<Lumina.Excel.GeneratedSheets.GeneralAction>()!;
+            RepairMe.GameData.GetExcelSheet<Lumina.Excel.GeneratedSheets.GeneralAction>()!;
 
         private const uint GeneralActionIdRepair = 6;
         private const uint GeneralActionIdMateriaExtraction = 14;
@@ -136,7 +134,7 @@ namespace RepairMe
 
                 longestOrientationLabel = OrientationLabels.Select(label => ImGui.CalcTextSize(label).X).Max() * 1.35f;
 
-                bool altCharacter = conf.AltCharacters.ContainsKey(ClientState.LocalContentId);
+                bool altCharacter = conf.AltCharacters.ContainsKey(RepairMe.ClientState.LocalContentId);
 
                 // bar condition
                 DrawConditionBar();
@@ -202,7 +200,7 @@ namespace RepairMe
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "prevented GUI crash");
+                RepairMe.Log.Error(ex, "prevented GUI crash");
             }
         }
 
@@ -214,7 +212,7 @@ namespace RepairMe
             }
             catch (Exception e)
             {
-                Log.Error("Could not use general action repair", e);
+                RepairMe.Log.Error("Could not use general action repair", e);
             }
         }
 
@@ -226,7 +224,7 @@ namespace RepairMe
             }
             catch (Exception e)
             {
-                Log.Error("Could not use general action materia extraction", e);
+                RepairMe.Log.Error("Could not use general action materia extraction", e);
             }
         }
 
@@ -324,7 +322,7 @@ namespace RepairMe
                 MigratePositions(ref position.BarCondition);
                 CheckDrag(ref position.BarCondition);
 
-                bool altCharacter = conf.AltCharacters.ContainsKey(ClientState.LocalContentId);
+                bool altCharacter = conf.AltCharacters.ContainsKey(RepairMe.ClientState.LocalContentId);
 
                 if (altCharacter && condition <= conf.ThresholdConditionCriticalAlt
                     || !altCharacter && condition <= conf.ThresholdConditionCritical)
@@ -679,7 +677,7 @@ namespace RepairMe
             ImGui.SameLine();
             if (ImGui.Checkbox("Hide when player is occupied##repairMe002.1", ref conf.HideUiWhenOccupied)) conf.Save();
 
-            if (Keys[VirtualKey.SHIFT])
+            if (RepairMe.Keys[VirtualKey.SHIFT])
             {
                 ImGui.SameLine(ImGui.GetContentRegionAvail().X - 12);
                 if (ImGuiEx.IconButton(FontAwesomeIcon.Bug, "Debug info"))
@@ -879,7 +877,7 @@ namespace RepairMe
                     {
                         ImGui.TableNextColumn();
                         if (ImGuiEx.IconButton(FontAwesomeIcon.Times, "Shift+Click to remove from list")
-                            && Keys[VirtualKey.SHIFT])
+                            && RepairMe.Keys[VirtualKey.SHIFT])
                             removal = altCharacter.Key;
 #if DEBUG
                         ImGui.TableNextColumn();
@@ -900,10 +898,10 @@ namespace RepairMe
                     ImGui.Spacing();
                 }
 
-                if (ImGui.Button("Apply to current character##AltCharsrepairMe051") && ClientState.LocalPlayer != null)
+                if (ImGui.Button("Apply to current character##AltCharsrepairMe051") && RepairMe.ClientState.LocalPlayer != null)
                 {
-                    conf.AltCharacters[ClientState.LocalContentId] = ClientState.LocalPlayer!.Name + " @ " +
-                                                                     ClientState.LocalPlayer!.HomeWorld.GameData!.Name;
+                    conf.AltCharacters[RepairMe.ClientState.LocalContentId] = RepairMe.ClientState.LocalPlayer!.Name + " @ " +
+                                                                              RepairMe.ClientState.LocalPlayer!.HomeWorld.GameData!.Name;
                     conf.Save();
                 }
 

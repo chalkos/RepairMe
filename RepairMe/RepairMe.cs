@@ -1,12 +1,25 @@
 ﻿using System.Reflection;
 using Dalamud.Game.Command;
+using Dalamud.IoC;
 using Dalamud.Plugin;
-using static RepairMe.Dalamud;
+using Dalamud.Plugin.Services;
 
 namespace RepairMe
 {
     public sealed class RepairMe : IDalamudPlugin
     {
+        [PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
+        [PluginService] internal static ICommandManager         Commands        { get; private set; } = null!;
+        [PluginService] internal static IDataManager            GameData        { get; private set; } = null!;
+        [PluginService] internal static IClientState            ClientState     { get; private set; } = null!;
+        [PluginService] internal static IChatGui                Chat            { get; private set; } = null!;
+        [PluginService] internal static IFramework              Framework       { get; private set; } = null!;
+        [PluginService] internal static ICondition              Conditions      { get; private set; } = null!;
+        [PluginService] internal static IKeyState               Keys            { get; private set; } = null!;
+        [PluginService] internal static IGameGui                GameGui         { get; private set; } = null!;
+        [PluginService] internal static IPluginLog              Log             { get; private set; } = null!;
+        [PluginService] internal static IGameInteropProvider    Hook            { get; private set; } = null!;
+        
         private const string CommandName = "/repairme";
         private EquipmentScanner? equipmentScanner;
         private EventHandler? eventHandler;
@@ -19,10 +32,8 @@ namespace RepairMe
         public string AssemblyLocation { get; set; } = Assembly.GetExecutingAssembly().Location;
         public string Name => "RepairMe";
 
-        public RepairMe(DalamudPluginInterface pluginInterface)
+        public RepairMe()
         {
-            DalamudInitialize(pluginInterface);
-
             equipmentScanner = new EquipmentScanner();
             eventHandler = new EventHandler(equipmentScanner);
             ui = new PluginUi(eventHandler);

@@ -117,20 +117,20 @@ namespace RepairMe
 
             EnableScanning();
 
-            Dalamud.ClientState.Login += ClientStateOnLogin;
-            Dalamud.ClientState.Logout += ClientStateOnLogout;
-            Dalamud.Framework.Update += GetConditionInfo;
-            Dalamud.ClientState.EnterPvP += DisableScanning;
-            Dalamud.ClientState.LeavePvP += EnableScanning;
+            RepairMe.ClientState.Login += ClientStateOnLogin;
+            RepairMe.ClientState.Logout += ClientStateOnLogout;
+            RepairMe.Framework.Update += GetConditionInfo;
+            RepairMe.ClientState.EnterPvP += DisableScanning;
+            RepairMe.ClientState.LeavePvP += EnableScanning;
         }
 
         public void Dispose()
         {
-            Dalamud.Framework.Update -= GetConditionInfo;
-            Dalamud.ClientState.Login -= ClientStateOnLogin;
-            Dalamud.ClientState.Logout -= ClientStateOnLogout;
-            Dalamud.ClientState.EnterPvP -= DisableScanning;
-            Dalamud.ClientState.LeavePvP -= EnableScanning;
+            RepairMe.Framework.Update -= GetConditionInfo;
+            RepairMe.ClientState.Login -= ClientStateOnLogin;
+            RepairMe.ClientState.Logout -= ClientStateOnLogout;
+            RepairMe.ClientState.EnterPvP -= DisableScanning;
+            RepairMe.ClientState.LeavePvP -= EnableScanning;
         }
 
         private void ClientStateOnLogin() => EnableScanning();
@@ -165,11 +165,11 @@ namespace RepairMe
                 if (inventoryItem == null) return;
                 for (var i = 0; i < EquipmentContainerSize; i++, inventoryItem++)
                 {
-                    isUpdate = conditionValues[i] != inventoryItem->Condition || idValues[i] != inventoryItem->ItemID ||
+                    isUpdate = conditionValues[i] != inventoryItem->Condition || idValues[i] != inventoryItem->ItemId ||
                                spiritbondValues[i] != inventoryItem->Spiritbond || isUpdate;
                     spiritbondValues[i] = inventoryItem->Spiritbond;
                     conditionValues[i] = inventoryItem->Condition;
-                    idValues[i] = inventoryItem->ItemID;
+                    idValues[i] = inventoryItem->ItemId;
                 }
 
                 if (isUpdate && NotificationTarget != null) NotificationTarget();

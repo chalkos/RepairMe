@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Configuration;
-using static RepairMe.Dalamud;
 
 namespace RepairMe
 {
@@ -126,7 +125,7 @@ namespace RepairMe
 
         public void Save()
         {
-            PluginInterface.SavePluginConfig(this);
+            RepairMe.PluginInterface.SavePluginConfig(this);
         }
 
         public static Configuration GetOrLoad()
@@ -134,7 +133,7 @@ namespace RepairMe
             if (_cachedConfig != null)
                 return _cachedConfig;
 
-            if (PluginInterface.GetPluginConfig() is not Configuration config)
+            if (RepairMe.PluginInterface.GetPluginConfig() is not Configuration config)
             {
                 config = new Configuration();
                 config.Save();

@@ -19,6 +19,8 @@ Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be 
 
 ## Changelog
 
+* v1.0.1.16
+  * update for .net8, api 10 and Dawntrail
 * v1.0.1.15
   * update for api 9
 * v1.0.1.14
