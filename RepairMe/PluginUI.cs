@@ -64,11 +64,11 @@ namespace RepairMe
         private bool isDragging = false;
         private bool isDrawingFirstFrame = true;
 
-        private ExcelSheet<Lumina.Excel.GeneratedSheets.Item> items =
-            RepairMe.GameData.GetExcelSheet<Lumina.Excel.GeneratedSheets.Item>()!;
+        private ExcelSheet<Lumina.Excel.Sheets.Item> items =
+            RepairMe.GameData.GetExcelSheet<Lumina.Excel.Sheets.Item>()!;
 
-        private ExcelSheet<Lumina.Excel.GeneratedSheets.GeneralAction> generalActions =
-            RepairMe.GameData.GetExcelSheet<Lumina.Excel.GeneratedSheets.GeneralAction>()!;
+        private ExcelSheet<Lumina.Excel.Sheets.GeneralAction> generalActions =
+            RepairMe.GameData.GetExcelSheet<Lumina.Excel.Sheets.GeneralAction>()!;
 
         private const uint GeneralActionIdRepair = 6;
         private const uint GeneralActionIdMateriaExtraction = 14;
@@ -901,7 +901,7 @@ namespace RepairMe
                 if (ImGui.Button("Apply to current character##AltCharsrepairMe051") && RepairMe.ClientState.LocalPlayer != null)
                 {
                     conf.AltCharacters[RepairMe.ClientState.LocalContentId] = RepairMe.ClientState.LocalPlayer!.Name + " @ " +
-                                                                              RepairMe.ClientState.LocalPlayer!.HomeWorld.GameData!.Name;
+                                                                              RepairMe.ClientState.LocalPlayer!.HomeWorld;
                     conf.Save();
                 }
 
@@ -1138,7 +1138,7 @@ namespace RepairMe
                         ImGui.TableNextColumn();
                         ImGui.Text($"{(e.Spiritbond[i] / 100f):F2}");
                         ImGui.TableNextColumn();
-                        ImGui.Text($"{items.GetRow(e.Id[i])?.Name}");
+                        ImGui.Text($"{items.GetRow(e.Id[i]).Name}");
                     }
 
                     ImGui.EndTable();
