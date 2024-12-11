@@ -94,7 +94,7 @@ namespace RepairMe
             Notify();
         }
 
-        private void ClientStateOnOnLogout()
+        private void ClientStateOnOnLogout(int a, int b)
         {
             Block();
         }

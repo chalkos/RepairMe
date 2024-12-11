@@ -135,7 +135,7 @@ namespace RepairMe
 
         private void ClientStateOnLogin() => EnableScanning();
 
-        private void ClientStateOnLogout() => DisableScanning();
+        private void ClientStateOnLogout(int a,int b) => DisableScanning();
 
         private void EnableScanning()
         {
