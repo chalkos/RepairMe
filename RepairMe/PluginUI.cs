@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using ImGuiNET;
 using Lumina.Excel;
 
 namespace RepairMe
@@ -44,7 +44,7 @@ namespace RepairMe
         private readonly string AlertConditionCriticalWindowChild = "repairme-alert-condition-critical-child";
         private readonly string AlertSpiritbondFullWindow = "repairme-alert-spiritbond-full";
         private readonly string AlertSpiritbondFullWindowChild = "repairme-alert-spiritbond-full-child";
-        private readonly uint AlertMessageMaximumLength = 1000;
+        private readonly int AlertMessageMaximumLength = 1000;
         private readonly int ThresholdSpiritbondFull = 100;
 
         // reference fields

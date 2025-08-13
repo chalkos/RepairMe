@@ -75,7 +75,7 @@ namespace RepairMe
 
         private void SetAddonNowLoading()
         {
-            addonLoading = (AtkUnitBase*)RepairMe.GameGui.GetAddonByName("NowLoading", 1);
+            addonLoading = (AtkUnitBase*)RepairMe.GameGui.GetAddonByName("NowLoading", 1).Address;
         }
 
         public void Dispose()
