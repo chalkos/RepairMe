@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Keys;
+using Dalamud.Plugin.Services;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -24,6 +25,8 @@ namespace RepairMe
 
         // position profile combo
         private int selectedProfileCombo = -1;
+        private string[] cachedResolutionOptions = Array.Empty<string>();
+        private int cachedResolutionOptionCount = -1;
 
         // constants
         private const int ProgressLabelPadding = 5;
@@ -48,6 +51,7 @@ namespace RepairMe
         private readonly int ThresholdSpiritbondFull = 100;
 
         // reference fields
+        private static IPlayerState PlayerState => RepairMe.PlayerState;
         private Configuration conf => Configuration.GetOrLoad();
         private PositionProfile position = null!;
         private PositionProfile? positionUndo = null;
@@ -88,6 +92,17 @@ namespace RepairMe
         {
         }
 
+        private string[] GetResolutionOptions()
+        {
+            if (cachedResolutionOptionCount != conf.PositionProfiles.Count)
+            {
+                cachedResolutionOptions = conf.PositionProfiles.Keys.ToArray();
+                cachedResolutionOptionCount = cachedResolutionOptions.Length;
+            }
+
+            return cachedResolutionOptions;
+        }
+
         public void Draw()
         {
             try
@@ -106,6 +121,7 @@ namespace RepairMe
                         ResolutionHeight = resolutionHeight
                     };
                     conf.PositionProfiles.Add(positionProfile.Id, positionProfile);
+                    cachedResolutionOptionCount = -1;
                     conf.Save();
                 }
 
@@ -131,7 +147,7 @@ namespace RepairMe
 
                 longestOrientationLabel = OrientationLabels.Select(label => ImGui.CalcTextSize(label).X).Max() * 1.35f;
 
-                bool altCharacter = conf.AltCharacters.ContainsKey(RepairMe.PlayerState.ContentId);
+                bool altCharacter = conf.AltCharacters.ContainsKey(PlayerState.ContentId);
 
                 // bar condition
                 DrawConditionBar();
@@ -317,7 +333,7 @@ namespace RepairMe
                 MigratePositions(ref position.BarCondition);
                 CheckDrag(ref position.BarCondition);
 
-                bool altCharacter = conf.AltCharacters.ContainsKey(RepairMe.PlayerState.ContentId);
+                bool altCharacter = conf.AltCharacters.ContainsKey(PlayerState.ContentId);
 
                 if (altCharacter && condition <= conf.ThresholdConditionCriticalAlt
                     || !altCharacter && condition <= conf.ThresholdConditionCritical)
@@ -893,10 +909,10 @@ namespace RepairMe
                     ImGui.Spacing();
                 }
 
-                if (ImGui.Button("Apply to current character##AltCharsrepairMe051") && RepairMe.PlayerState.IsLoaded)
+                if (ImGui.Button("Apply to current character##AltCharsrepairMe051") && PlayerState.IsLoaded)
                 {
-                    conf.AltCharacters[RepairMe.PlayerState.ContentId] = RepairMe.PlayerState.CharacterName + " @ " +
-                                                                         RepairMe.PlayerState.HomeWorld.Value;
+                    conf.AltCharacters[PlayerState.ContentId] = PlayerState.CharacterName + " @ " +
+                                                                PlayerState.HomeWorld.Value;
                     conf.Save();
                 }
 
@@ -1023,7 +1039,7 @@ namespace RepairMe
             {
                 ImGui.Text("If you changed you resolution and want to copy position settings from other resolution");
 
-                string[] resolutions = conf.PositionProfiles.Keys.ToArray();
+                string[] resolutions = GetResolutionOptions();
                 int current = selectedProfileCombo;
                 if (current == -1)
                     for (current = 0; current < resolutions.Length; current++)
