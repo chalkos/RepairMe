@@ -18,9 +18,10 @@ Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be 
 - Almost all text and background colors can be configured
 
 ## Changelog
-
+* v1.0.1.22
+  * settings window render optimization
 * v1.0.1.21
-  * update for api15 and patch 7.5
+  * update for dalamud 15.0.0
 * v1.0.1.18
   * update for patch 7.2
 * v1.0.1.17
