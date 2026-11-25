@@ -87,6 +87,8 @@ namespace RepairMe
             internal static PluginUiDefaults CreatePluginUiDefaults() => new();
 
             internal const int AlertMessageMaximumLength = 200;
+            // How long a gap must persist before the missing-gear alert shows (covers job-change gear swaps).
+            internal const long MissingGearGraceMs = 2000;
             internal const float BarPointSize = 1f;
             internal const float DefaultConditionPercent = 100f;
             internal const int NoSelectedProfile = -1;

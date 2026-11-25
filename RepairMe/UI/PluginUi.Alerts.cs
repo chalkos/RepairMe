@@ -106,7 +106,7 @@ namespace RepairMe
         private MissingGearAlertState ComputeMissingGearAlertState()
         {
             if (!Conf.AlertMissingGearEnabled || !PlayerState.IsLoaded)
-                return ApplyMissingGearAlert(_const._alertStateEvaluator.EvaluateMissingGear(new MissingGearResult(false, string.Empty), Conf));
+                return ApplyMissingGearAlert(_const._alertStateEvaluator.EvaluateMissingGear(new MissingGearResult(false, string.Empty), 0, Environment.TickCount64, Conf));
 
             ushort classJobId = (ushort)PlayerState.ClassJob.RowId;
             byte level = (byte)PlayerState.Level;
@@ -117,7 +117,7 @@ namespace RepairMe
                 _missingGearResult = EquipmentAnalysis.GetMissingGear(tracker.GetLastEquipmentData(), classJobId, level, _const.Items);
             }
 
-            return ApplyMissingGearAlert(_const._alertStateEvaluator.EvaluateMissingGear(_missingGearResult, Conf));
+            return ApplyMissingGearAlert(_const._alertStateEvaluator.EvaluateMissingGear(_missingGearResult, classJobId, Environment.TickCount64, Conf));
         }
 
         private MissingGearAlertState ApplyMissingGearAlert(AlertEvaluationResult alert)

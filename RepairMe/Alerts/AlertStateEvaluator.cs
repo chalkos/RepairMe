@@ -26,6 +26,12 @@ namespace RepairMe
     {
         private AlertKind _lastConditionAlertKind = AlertKind.Normal;
         private AlertKind _lastMissingGearAlertKind = AlertKind.Normal;
+        private readonly long _missingGearGraceMs;
+        private long _missingGearSinceMs = -1;
+        private ushort _lastMissingGearJobId;
+
+        internal AlertStateEvaluator(long missingGearGraceMs = RepairMeConstants.Ui.MissingGearGraceMs)
+            => _missingGearGraceMs = missingGearGraceMs;
 
         internal AlertEvaluationResult EvaluateCondition(float condition, bool isAlt, Configuration conf)
         {
@@ -36,8 +42,14 @@ namespace RepairMe
             return BuildConditionAlert(newKind, conf, changed);
         }
 
-        internal AlertEvaluationResult EvaluateMissingGear(MissingGearResult missingGear, Configuration conf)
+        /// <summary>
+        /// Evaluates the missing-gear alert, holding a raw "missing" result back until it has persisted for the grace
+        /// period. After a job change the new job's expected slots are known before the equipment scan catches up with
+        /// the gear swap, so a raw result is briefly wrong. The grace restarts whenever the job changes.
+        /// </summary>
+        internal AlertEvaluationResult EvaluateMissingGear(MissingGearResult rawMissingGear, ushort classJobId, long nowMs, Configuration conf)
         {
+            var missingGear = DebounceMissingGear(rawMissingGear, classJobId, nowMs);
             if (!missingGear.IsMissing)
             {
                 var changed = _lastMissingGearAlertKind != AlertKind.Normal;
@@ -55,6 +67,26 @@ namespace RepairMe
                 conf.AlertMissingGearColor,
                 conf.AlertMissingGearBg,
                 changedToAlert);
+        }
+
+        private MissingGearResult DebounceMissingGear(MissingGearResult raw, ushort classJobId, long nowMs)
+        {
+            if (classJobId != _lastMissingGearJobId)
+            {
+                _lastMissingGearJobId = classJobId;
+                _missingGearSinceMs = -1;
+            }
+
+            if (!raw.IsMissing)
+            {
+                _missingGearSinceMs = -1;
+                return raw;
+            }
+
+            if (_missingGearSinceMs < 0)
+                _missingGearSinceMs = nowMs;
+
+            return nowMs - _missingGearSinceMs < _missingGearGraceMs ? new MissingGearResult(false, string.Empty) : raw;
         }
 
         private static AlertKind GetConditionAlertKind(float condition, bool isAlt, Configuration conf)
