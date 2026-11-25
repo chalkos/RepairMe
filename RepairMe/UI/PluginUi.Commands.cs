@@ -41,7 +41,7 @@ namespace RepairMe
 
         internal void ToggleSettingsVisibility()
         {
-            switch (eventHandler)
+            switch (tracker)
             {
                 case { IsOccupied: true }:
                     RepairMe.Chat.PrintError("RepairMe is hidden while occupied");

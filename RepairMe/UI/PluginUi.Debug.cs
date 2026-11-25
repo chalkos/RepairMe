@@ -110,7 +110,7 @@ namespace RepairMe
             if (frame != _debugSummaryFrame)
             {
                 _debugSummaryFrame = frame;
-                var e = eventHandler.GetLastEquipmentData();
+                var e = tracker.GetLastEquipmentData();
                 _debugSummary = e.HasValue ? GetDebugEquipmentSummary(e.Value) : null;
             }
 

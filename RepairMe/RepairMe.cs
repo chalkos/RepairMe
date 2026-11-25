@@ -26,7 +26,7 @@ namespace RepairMe
         [PluginService] internal static IPluginLog              Log             { get; private set; } = null!;
         [PluginService] internal static IDtrBar                 DtrBar          { get; private set; } = null!;
         private EquipmentScanner? equipmentScanner;
-        private EventHandler? eventHandler;
+        private EquipmentTracker? tracker;
 
         private PluginUi? ui;
         private bool disposed;
@@ -45,12 +45,12 @@ namespace RepairMe
             Instance = this;
             Log.Info("[RepairMe] Plugin loaded successfully");
             equipmentScanner = new EquipmentScanner();
-            eventHandler = new EventHandler(equipmentScanner);
-            ui = new PluginUi(eventHandler, PluginInterface);
+            tracker = new EquipmentTracker(equipmentScanner);
+            ui = new PluginUi(tracker, PluginInterface);
 
-            // EventHandler detects fresh equipment data; PluginUi owns the derived view and DTR rendering.
+            // EquipmentTracker detects fresh equipment data; PluginUi owns the derived view and DTR rendering.
             // Wire them here so RepairMe remains composition/lifecycle code.
-            eventHandler.EquipmentChanged += ui.OnEquipmentChanged;
+            tracker.EquipmentChanged += ui.OnEquipmentChanged;
 
             Commands.AddHandler(CommandConstants.PluginCommand, new CommandInfo(ui.OnCommand)
             {
@@ -74,7 +74,7 @@ namespace RepairMe
             var pluginInterface = PluginInterface;
             var commandManager = Commands;
             var pluginUi = ui;
-            var handler = eventHandler;
+            var handler = tracker;
             var scanner = equipmentScanner;
             var log = Log;
 
@@ -115,7 +115,7 @@ namespace RepairMe
             finally
             {
                 ui = null;
-                eventHandler = null;
+                tracker = null;
                 equipmentScanner = null;
 
                 PluginInterface = null!;

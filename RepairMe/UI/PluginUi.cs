@@ -25,15 +25,15 @@ namespace RepairMe
         private readonly Configuration _conf;
         /// <summary>Access to cached configuration.</summary>
         private Configuration Conf => _conf;
-        private readonly EventHandler eventHandler;
+        private readonly EquipmentTracker tracker;
 
         private static IPlayerState PlayerState => RepairMe.PlayerState;
 
         private readonly IDalamudPluginInterface _pluginInterface;
 
-        internal PluginUi(EventHandler eventHandler, IDalamudPluginInterface pluginInterface)
+        internal PluginUi(EquipmentTracker tracker, IDalamudPluginInterface pluginInterface)
         {
-            this.eventHandler = eventHandler;
+            this.tracker = tracker;
             _pluginInterface = pluginInterface;
             _conf = Configuration.GetOrLoad();
         }
@@ -58,7 +58,7 @@ namespace RepairMe
 
         private void RefreshEquipmentView()
         {
-            var version = eventHandler.EquipmentVersion;
+            var version = tracker.EquipmentVersion;
             var minLevel = Conf.MinSpiritbondItemLevel;
             if (version == _viewVersion && minLevel == _viewMinItemLevel)
                 return;
@@ -70,7 +70,7 @@ namespace RepairMe
                 _viewMinItemLevel = minLevel;
             }
 
-            var e = eventHandler.GetLastEquipmentData();
+            var e = tracker.GetLastEquipmentData();
             _viewCondition = e?.LowestConditionPercent ?? UiConstants.DefaultConditionPercent;
             _viewConditionSlot = e?.LowestConditionSlot ?? 0;
             _spiritbondView = EquipmentAnalysis.FilterSpiritbondByItemLevel(e, minLevel, _const.Items);
@@ -84,7 +84,7 @@ namespace RepairMe
         {
             try
             {
-                if (!eventHandler.IsActive) return;
+                if (!tracker.IsActive) return;
 
                 // Casting ImGuiVector directly to int truncates toward zero, same as floor+cast for positive values.
                 int resolutionWidth = (int)ImGui.GetMainViewport().Size.X;
@@ -631,7 +631,7 @@ namespace RepairMe
                                 ],
                                 () =>
                                 {
-                                    var e = eventHandler.GetLastEquipmentData();
+                                    var e = tracker.GetLastEquipmentData();
                                     return e.HasValue ? BuildEquipmentDebugRows(e.Value, _const.Items) : Array.Empty<TableRootItem.TableRow>();
                                 })),
                         UiItem.Section("Resolutions & Positions", ImGuiTreeNodeFlags.None,
@@ -666,13 +666,13 @@ namespace RepairMe
                             UiItem.DynamicText(() => $"Content ID: {PlayerState.ContentId}")),
                         UiItem.Section("System State", ImGuiTreeNodeFlags.None,
                             UiItem.DynamicText(() => $"Resolution: {_const._currentResolutionId}"),
-                            UiItem.DynamicText(() => $"Active: {eventHandler.IsActive}"),
-                            UiItem.DynamicText(() => $"PvP: {eventHandler.IsInPvPArea}"),
+                            UiItem.DynamicText(() => $"Active: {tracker.IsActive}"),
+                            UiItem.DynamicText(() => $"PvP: {tracker.IsInPvPArea}"),
                             UiItem.DynamicText(() => $"UI Hidden: {(ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows) ? "No" : "Unknown")}"),
                             UiItem.DynamicText(() => $"Testing Mode: {_const._testingMode}")),
                         UiItem.Section("Scanner Health", ImGuiTreeNodeFlags.None,
                             UiItem.DynamicText(() => DebugLine(s => $"Equipment Count: {s.EquippedSlotCount}")),
-                            UiItem.DynamicText(() => $"Equipment Updates: {eventHandler.EquipmentVersion}"),
+                            UiItem.DynamicText(() => $"Equipment Updates: {tracker.EquipmentVersion}"),
                             UiItem.DynamicText(() => DebugLine(s => $"Lowest Condition: {s.LowestCondition}")),
                             UiItem.DynamicText(() => DebugLine(s => $"Highest Condition: {s.HighestCondition}")),
                             UiItem.DynamicText(() => DebugLine(s => $"Lowest Spiritbond: {s.LowestSpiritbond}")),

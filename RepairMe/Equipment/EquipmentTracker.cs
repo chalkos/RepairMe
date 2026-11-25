@@ -5,7 +5,7 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace RepairMe
 {
-    public class EventHandler : IDisposable
+    public class EquipmentTracker : IDisposable
     {
         private readonly Configuration _conf;
         private readonly EquipmentScanner equipmentScanner;
@@ -54,7 +54,7 @@ namespace RepairMe
         private bool IsLoading => RepairMe.Conditions?[ConditionFlag.BetweenAreas] == true
                                   || RepairMe.Conditions?[ConditionFlag.BetweenAreas51] == true;
 
-        public EventHandler(EquipmentScanner equipmentScanner)
+        public EquipmentTracker(EquipmentScanner equipmentScanner)
         {
             this.equipmentScanner = equipmentScanner;
             _conf = Configuration.GetOrLoad();
