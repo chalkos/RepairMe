@@ -1,8 +1,5 @@
 using System;
 using System.Numerics;
-using Dalamud.Bindings.ImGui;
-using Dalamud.Interface;
-using Dalamud.Interface.Utility;
 using UiConstants = RepairMe.RepairMeConstants.Ui;
 
 namespace RepairMe
@@ -23,41 +20,6 @@ namespace RepairMe
         {
             if (PlayerState == null) return false;
             return Conf.AltCharacters.ContainsKey(PlayerState.ContentId);
-        }
-
-        private void DrawAltCharacterList()
-        {
-            if (Conf.AltCharacters.Count == 0)
-                return;
-
-            ImGui.Spacing();
-            ImGui.Text("Characters using the alternative thresholds");
-            if (!ImGui.BeginTable("##repairMeAltChars", 2))
-                return;
-
-            ImGui.TableSetupColumn("##repairMeAltChars-c1", ImGuiTableColumnFlags.WidthFixed, 30 * ImGuiHelpers.GlobalScale);
-            ImGui.TableSetupColumn("Character##repairMeAltChars-c2");
-
-            ulong removal = 0;
-            foreach (var (id, name) in Conf.AltCharacters)
-            {
-                ImGui.TableNextColumn();
-                ImGui.PushFont(UiBuilder.IconFont);
-                var clicked = ImGui.Button($"{FontAwesomeIcon.Times.ToIconString()}##repairMeAltRemove-{id}");
-                ImGui.PopFont();
-                if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Shift+Click to remove from list");
-                if (clicked && RepairMe.Keys[Dalamud.Game.ClientState.Keys.VirtualKey.SHIFT])
-                    removal = id;
-
-                ImGui.TableNextColumn();
-                ImGui.Text(name);
-            }
-
-            ImGui.EndTable();
-
-            if (removal != 0 && Conf.AltCharacters.Remove(removal))
-                Conf.Save();
         }
 
         private bool AnyConditionAlertEnabled()

@@ -208,9 +208,15 @@ namespace RepairMe
                     using (fontHandle?.Push())
                     {
                         ImGui.PushStyleColor(ImGuiCol.Text, color);
-                        ImGui.SetCursorPos(textPos);
-                        ImGui.TextUnformatted(text);
-                        ImGui.PopStyleColor();
+                        try
+                        {
+                            ImGui.SetCursorPos(textPos);
+                            ImGui.TextUnformatted(text);
+                        }
+                        finally
+                        {
+                            ImGui.PopStyleColor();
+                        }
                     }
 
                     if (!_const.isUiUnlocked && clickAction != null && ImGui.IsWindowHovered() &&

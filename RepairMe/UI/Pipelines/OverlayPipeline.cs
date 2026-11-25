@@ -90,30 +90,34 @@ namespace RepairMe
         {
             var position = _positionProvider();
             var size = _sizeProvider();
-            using var _ = BeginBarOverlay(ref position, size);
-
-            var state = _stateProvider();
-            var borderColor = _host.UnlockedUiMode ? new Vector4(1, 0, 0, 1) : _borderColorProvider();
-
-            _host.DrawBar(
-                state,
-                _orientationProvider(),
-                size,
-                _roundingProvider(),
-                _borderSizeProvider(),
-                borderColor);
-        }
-
-        private OverlayScope BeginBarOverlay(ref Vector2 position, Vector2 size)
-        {
             var windowFlags = _host.PrepareWindow(position);
             _host.PushWindowEditingStyle();
-            ImGui.SetNextWindowSize(size + ImGui.GetStyle().WindowPadding * 2);
-            ImGui.Begin(_windowName, windowFlags);
-            _host.MigratePositions(ref position);
-            _host.CheckDrag(ref position);
-            _positionWriter(position);
-            return new OverlayScope(() => _host.PopWindowEditingStyle());
+            try
+            {
+                ImGui.SetNextWindowSize(size + ImGui.GetStyle().WindowPadding * 2);
+                if (ImGui.Begin(_windowName, windowFlags))
+                {
+                    _host.MigratePositions(ref position);
+                    _host.CheckDrag(ref position);
+                    _positionWriter(position);
+
+                    var state = _stateProvider();
+                    var borderColor = _host.UnlockedUiMode ? new Vector4(1, 0, 0, 1) : _borderColorProvider();
+
+                    _host.DrawBar(
+                        state,
+                        _orientationProvider(),
+                        size,
+                        _roundingProvider(),
+                        _borderSizeProvider(),
+                        borderColor);
+                }
+            }
+            finally
+            {
+                ImGui.End();
+                _host.PopWindowEditingStyle();
+            }
         }
     }
 
@@ -183,22 +187,6 @@ namespace RepairMe
                 ImGui.End();
                 _host.PopWindowEditingStyle(_useMinimumWindowSize);
             }
-        }
-    }
-
-    internal readonly struct OverlayScope : IDisposable
-    {
-        private readonly Action _popAction;
-
-        internal OverlayScope(Action popAction)
-        {
-            _popAction = popAction;
-        }
-
-        public void Dispose()
-        {
-            ImGui.End();
-            _popAction();
         }
     }
 }
