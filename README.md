@@ -39,7 +39,6 @@ Run `make help` to list the targets. The common ones:
 Building and testing need a Dalamud install. Set `DALAMUD_HOME` to its dev folder, or run `make fetch-dalamud DALAMUD_HOME=/some/folder` to download one. If `dotnet` is not on your `PATH`, pass `DOTNET=/path/to/dotnet`.
 
 ## Changelog
-
 * v2.0.0
   * add alert for repairable equipment (below 100%)
   * add alert for empty equipment slots, based on the current job
@@ -53,8 +52,10 @@ Building and testing need a Dalamud install. Set `DALAMUD_HOME` to its dev folde
   * equipment scanning no longer uses a background thread or cached game pointers
   * percentages are rounded down instead of to the nearest value
   * add unit tests for the alert, equipment and configuration logic
+* v1.0.1.22
+  * settings window render optimization
 * v1.0.1.21
-  * update for api15 and patch 7.5
+  * update for dalamud 15.0.0
 * v1.0.1.18
   * update for patch 7.2
 * v1.0.1.17

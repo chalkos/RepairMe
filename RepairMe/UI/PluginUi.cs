@@ -47,6 +47,8 @@ namespace RepairMe
         private (int Version, ushort Job, byte Level, bool HasItems) _missingGearKey = (-1, 0, 0, false);
         private MissingGearResult _missingGearResult = new(false, string.Empty);
 
+        private readonly ResolutionOptionsCache _resolutionOptions = new();
+
         private bool TestingActive => _const.settingsVisible && _const._testingMode;
 
         internal void OnEquipmentChanged()
@@ -99,7 +101,10 @@ namespace RepairMe
                         ResolutionHeight = resolutionHeight
                     };
                     if (Conf.PositionProfiles.TryAdd(resolutionId, positionProfile))
+                    {
+                        _resolutionOptions.Invalidate();
                         Conf.Save();
+                    }
                 }
 
                 _const.position = positionProfile;
@@ -577,12 +582,12 @@ namespace RepairMe
                             UiItem.Text("Copy position settings from"),
                             UiItem.SameLine(
                                 UiItem.Width(120, UiItem.Combo("##repairMe401", () => _const.selectedProfileCombo,
-                                    () => Conf.PositionProfiles.Keys.ToArray(),
+                                    () => _resolutionOptions.Get(Conf.PositionProfiles),
                                     v => { _const.selectedProfileCombo = v; })),
                                 UiItem.Button("Copy", () => {
                                     _const.positionUndo = new PositionProfile();
                                     _const.positionUndo.CopyFrom(_const.position);
-                                    var keys = Conf.PositionProfiles.Keys.ToArray();
+                                    var keys = _resolutionOptions.Get(Conf.PositionProfiles);
                                     if (_const.selectedProfileCombo >= 0 && _const.selectedProfileCombo < keys.Length)
                                     {
                                         var source = Conf.PositionProfiles.GetValueOrDefault(keys[_const.selectedProfileCombo]);
