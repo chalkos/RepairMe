@@ -41,6 +41,10 @@ Run `make help` to list the targets. The common ones:
 Building and testing need a Dalamud install. Set `DALAMUD_HOME` to its dev folder, or run `make fetch-dalamud DALAMUD_HOME=/some/folder` to download one. If `dotnet` is not on your `PATH`, pass `DOTNET=/path/to/dotnet`.
 
 ## Changelog
+* v2.0.1
+  * bar overlays no longer draw when their window is not visible
+  * overlay windows, tabs, tables, tooltips and icon buttons are always ended and their styles restored, even if drawing throws
+  * the alternative threshold character list is drawn through the window items instead of calling ImGui directly
 * v2.0.0
   * add alert for repairable equipment (below 100%)
   * add alert for empty equipment slots, based on the current job (delayed about 2 seconds so job changes don't trigger it)

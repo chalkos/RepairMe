@@ -113,18 +113,29 @@ namespace RepairMe
 
             // Multiple tabs with tab bar enabled: use stable hidden ID
             var stableId = Title.Replace(" ", "_");
-            if (ImGui.BeginTabBar(stableId))
+            if (!ImGui.BeginTabBar(stableId))
+                return;
+
+            try
             {
                 foreach (var tab in tabs)
                 {
                     var tabLabel = tab.Name.Replace(" ", "_");
-                    if (ImGui.BeginTabItem(tabLabel))
+                    if (!ImGui.BeginTabItem(tabLabel))
+                        continue;
+
+                    try
                     {
                         tab.Draw();
+                    }
+                    finally
+                    {
                         ImGui.EndTabItem();
                     }
                 }
-
+            }
+            finally
+            {
                 ImGui.EndTabBar();
             }
         }
@@ -426,6 +437,13 @@ namespace RepairMe
         public static IconButtonItem IconButton(FontAwesomeIcon icon, string tooltip, Action onClick)
             => new(icon, tooltip, onClick);
 
+        public static IconRowTableItem IconRowTable(string tableKey, string heading, FontAwesomeIcon icon,
+            string tooltip, Func<IconRowTableItem.IconRow[]> rowProvider)
+            => new(tableKey, heading, icon, tooltip, rowProvider);
+
+        public static IconRowTableItem.IconRow IconRow(string id, string label, Action onClick)
+            => new(id, label, onClick);
+
         public static ItemWidth Width(float width, WindowItem child)
             => new(width, child);
 
@@ -658,20 +676,113 @@ namespace RepairMe
 
         public override void Draw()
         {
-            ImGui.PushFont(UiBuilder.IconFont);
             var iconText = Icon.ToIconString();
-            var clicked = ImGui.Button($"{iconText}##{iconText}-{Tooltip}");
-            ImGui.PopFont();
+            var clicked = DrawIconButton($"{iconText}##{iconText}-{Tooltip}");
 
             if (ImGui.IsItemHovered())
-            {
-                ImGui.BeginTooltip();
-                ImGui.TextUnformatted(Tooltip);
-                ImGui.EndTooltip();
-            }
+                DrawTooltip(Tooltip);
 
             if (clicked)
                 OnClick?.Invoke();
+        }
+
+        internal static bool DrawIconButton(string label)
+        {
+            ImGui.PushFont(UiBuilder.IconFont);
+            try
+            {
+                return ImGui.Button(label);
+            }
+            finally
+            {
+                ImGui.PopFont();
+            }
+        }
+
+        internal static void DrawTooltip(string text)
+        {
+            ImGui.BeginTooltip();
+            try
+            {
+                ImGui.TextUnformatted(text);
+            }
+            finally
+            {
+                ImGui.EndTooltip();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Renders a headed two-column table of rows, each with an icon button and a label.
+    /// Draws nothing while there are no rows.
+    /// </summary>
+    internal sealed class IconRowTableItem : WindowItem
+    {
+        public string TableKey = null!;
+        public string Heading = null!;
+        public FontAwesomeIcon Icon;
+        public string Tooltip = null!;
+        public Func<IconRow[]> RowProvider = null!;
+
+        public IconRowTableItem(string tableKey, string heading, FontAwesomeIcon icon, string tooltip,
+            Func<IconRow[]> rowProvider)
+        {
+            TableKey = tableKey;
+            Heading = heading;
+            Icon = icon;
+            Tooltip = tooltip;
+            RowProvider = rowProvider;
+        }
+
+        public override void Draw()
+        {
+            var rows = RowProvider();
+            if (rows.Length == 0)
+                return;
+
+            ImGui.Spacing();
+            ImGui.TextUnformatted(Heading);
+            if (!ImGui.BeginTable(TableKey + "##iconrowtable", 2))
+                return;
+
+            try
+            {
+                ImGui.TableSetupColumn(TableKey + "-icon", ImGuiTableColumnFlags.WidthFixed, 30 * Dalamud.Interface.Utility.ImGuiHelpers.GlobalScale);
+                ImGui.TableSetupColumn("Label##" + TableKey + "-label");
+
+                var iconText = Icon.ToIconString();
+                foreach (var row in rows)
+                {
+                    ImGui.TableNextColumn();
+                    var clicked = IconButtonItem.DrawIconButton($"{iconText}##{TableKey}-{row.Id}");
+                    if (ImGui.IsItemHovered())
+                        IconButtonItem.DrawTooltip(Tooltip);
+                    if (clicked)
+                        row.OnClick();
+
+                    ImGui.TableNextColumn();
+                    ImGui.TextUnformatted(row.Label);
+                }
+            }
+            finally
+            {
+                ImGui.EndTable();
+            }
+        }
+
+        public sealed class IconRow
+        {
+            public string Id;
+            public string Label;
+            public Action OnClick;
+
+            public IconRow(string id, string label, Action onClick)
+            {
+                Id = id;
+                Label = label;
+                OnClick = onClick;
+            }
         }
     }
 
@@ -728,13 +839,19 @@ namespace RepairMe
 
         public override void Draw()
         {
-            if (ImGui.BeginTable(TableKey + "##colortable", Columns))
+            if (!ImGui.BeginTable(TableKey + "##colortable", Columns))
+                return;
+
+            try
             {
                 foreach (var item in Items)
                 {
                     ImGui.TableNextColumn();
                     item.Draw();
                 }
+            }
+            finally
+            {
                 ImGui.EndTable();
             }
         }
@@ -797,7 +914,10 @@ namespace RepairMe
             if (columnCount == 0)
                 return;
 
-            if (ImGui.BeginTable(TableKey + "##table", columnCount, Flags))
+            if (!ImGui.BeginTable(TableKey + "##table", columnCount, Flags))
+                return;
+
+            try
             {
                 for (int i = 0; i < Columns.Length; i++)
                 {
@@ -818,7 +938,9 @@ namespace RepairMe
                         ImGui.TextUnformatted(row.Cells[c]);
                     }
                 }
-
+            }
+            finally
+            {
                 ImGui.EndTable();
             }
         }

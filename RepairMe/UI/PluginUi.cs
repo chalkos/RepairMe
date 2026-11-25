@@ -400,7 +400,15 @@ namespace RepairMe
                                             c.Save();
                                         }
                                     }),
-                                    UiItem.Custom(DrawAltCharacterList)),
+                                    UiItem.IconRowTable("repairMeAltChars", "Characters using the alternative thresholds",
+                                        FontAwesomeIcon.Times, "Shift+Click to remove from list",
+                                        () => c.AltCharacters
+                                            .Select(entry => UiItem.IconRow(entry.Key.ToString(), entry.Value, () =>
+                                            {
+                                                if (RepairMe.Keys[Dalamud.Game.ClientState.Keys.VirtualKey.SHIFT] && c.AltCharacters.Remove(entry.Key))
+                                                    c.Save();
+                                            }))
+                                            .ToArray())),
                         UiItem.Section("Appearance Settings", ImGuiTreeNodeFlags.None,
                                     UiItem.Text("Positions"),
                                     UiItem.SameLine(
