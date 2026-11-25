@@ -76,8 +76,8 @@ namespace RepairMe
 
         internal static class GeneralActions
         {
-            // These IDs may change on game patches. Update if FFXIV modifies the GeneralAction table.
-            // TODO: Validate at runtime or look up from Lumina GeneralAction sheet if IDs become unreliable.
+            // GeneralAction sheet RowIds. They are stable across patches, and the sheet has no non-localized key to look them up by.
+            // If the game ever changes them, UseAction fails and the error is logged by OpenRepairs/OpenMateriaExtraction.
             internal const uint Repair = 6;
             internal const uint MateriaExtraction = 14;
         }
