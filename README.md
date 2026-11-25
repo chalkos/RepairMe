@@ -26,6 +26,18 @@ Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be 
 - With the config open, testing mode simulates different gear condition percentages to allow adjusting the colors without the need to equip gear with lower condition
 - Almost all text and background colors can be configured
 
+## Development
+
+Run `make help` to list the targets. The common ones:
+
+- `make build` - build the plugin
+- `make test` - run the unit tests
+- `make lint` - check code style and fail on compiler warnings
+- `make validate-workflows` - lint the GitHub Actions workflows with actionlint (uses a local `actionlint`, or podman/docker)
+- `make ci` - everything CI runs
+
+Building and testing need a Dalamud install. Set `DALAMUD_HOME` to its dev folder, or run `make fetch-dalamud DALAMUD_HOME=/some/folder` to download one. If `dotnet` is not on your `PATH`, pass `DOTNET=/path/to/dotnet`.
+
 ## Changelog
 
 * v2.0.0

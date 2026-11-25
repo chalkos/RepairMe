@@ -123,8 +123,9 @@ namespace RepairMe
             byte level = (byte)PlayerState.Level;
             float lowThresholdPercent = Conf.ThresholdConditionLow;
 
-            int equippedSlotCount = EquipmentAnalysis.GetExpectedEquippedSlotCount(equipmentData, classJobId, level, _const.Items);
-            EquipmentSummary summary = EquipmentAnalysis.GetEquipmentSummary(equipmentData, classJobId, level, lowThresholdPercent, _const.Items);
+            bool offHandExpected = EquipmentAnalysis.ResolveOffHandExpected(equipmentData, classJobId, level, _const.Items);
+            int equippedSlotCount = EquipmentAnalysis.GetExpectedEquippedSlotCount(equipmentData, offHandExpected);
+            EquipmentSummary summary = EquipmentAnalysis.GetEquipmentSummary(equipmentData, offHandExpected, lowThresholdPercent);
             string lowestCondition = $"{equipmentData.LowestConditionPercent:F2} ({EquipmentConstants.SlotNames[equipmentData.LowestConditionSlot]})";
             string highestCondition = $"{equipmentData.HighestConditionPercent:F2} ({EquipmentConstants.SlotNames[equipmentData.HighestConditionSlot]})";
             string lowestSpiritbond = $"{equipmentData.LowestSpiritbondPercent:F2} ({EquipmentConstants.SlotNames[equipmentData.LowestSpiritbondSlot]})";

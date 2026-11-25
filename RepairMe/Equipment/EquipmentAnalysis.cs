@@ -37,6 +37,12 @@ namespace RepairMe
             EquipmentData? equipment,
             int minLevel,
             ExcelSheet<Lumina.Excel.Sheets.Item>? items)
+            => FilterSpiritbondByItemLevel(equipment, minLevel, itemId => GetItemLevel(itemId, items));
+
+        internal static SpiritbondFilterResult FilterSpiritbondByItemLevel(
+            EquipmentData? equipment,
+            int minLevel,
+            Func<uint, int> itemLevelOf)
         {
             if (!equipment.HasValue)
                 return SpiritbondFilterResult.Empty;
@@ -53,7 +59,7 @@ namespace RepairMe
             for (int i = 0; i < idArr.Length; i++)
             {
                 if (idArr[i] == 0) continue;
-                if (GetItemLevel(idArr[i], items) < minLevel) continue;
+                if (itemLevelOf(idArr[i]) < minLevel) continue;
 
                 float pct = data.SpiritbondPercents[i];
                 if (pct < 0f) continue;
@@ -67,38 +73,40 @@ namespace RepairMe
                 : new SpiritbondFilterResult(highest, lowest, points.ToArray(), highestSlot);
         }
 
-        internal static int[] GetExpectedSlotIndices(
-            ushort classJobId,
-            byte level,
-            uint mainHandItemId,
-            ExcelSheet<Lumina.Excel.Sheets.Item>? items)
-        {
-            var coreExpectedSlots = EquipmentConstants.CoreExpectedSlots;
-            var expectedSlots = new int[(items != null && PlayerInfo.IsOffHandExpected(classJobId, level, mainHandItemId, items))
-                ? coreExpectedSlots.Length + 1
-                : coreExpectedSlots.Length];
-
-            Array.Copy(coreExpectedSlots, expectedSlots, coreExpectedSlots.Length);
-            if (expectedSlots.Length > coreExpectedSlots.Length)
-                expectedSlots[^1] = EquipmentConstants.SlotOffHand;
-
-            return expectedSlots;
-        }
-
-        internal static MissingGearResult GetMissingGear(
+        /// <summary>Whether the job expects an off-hand; false when the item sheet or equipment is unavailable.</summary>
+        internal static bool ResolveOffHandExpected(
             EquipmentData? equipment,
             ushort classJobId,
             byte level,
             ExcelSheet<Lumina.Excel.Sheets.Item>? items)
         {
+            if (!equipment.HasValue || items == null)
+                return false;
+
+            var ids = equipment.Value.Id;
+            uint mainHandItemId = ids.Length > EquipmentConstants.SlotMainHand ? ids[EquipmentConstants.SlotMainHand] : 0;
+            return PlayerInfo.IsOffHandExpected(classJobId, level, mainHandItemId, PlayerInfo.ItemCategoryLookup(items));
+        }
+
+        internal static int[] GetExpectedSlotIndices(bool offHandExpected)
+        {
+            var coreExpectedSlots = EquipmentConstants.CoreExpectedSlots;
+            var expectedSlots = new int[offHandExpected ? coreExpectedSlots.Length + 1 : coreExpectedSlots.Length];
+
+            Array.Copy(coreExpectedSlots, expectedSlots, coreExpectedSlots.Length);
+            if (offHandExpected)
+                expectedSlots[^1] = EquipmentConstants.SlotOffHand;
+
+            return expectedSlots;
+        }
+
+        internal static MissingGearResult GetMissingGear(EquipmentData? equipment, bool offHandExpected)
+        {
             if (!equipment.HasValue || equipment.Value.Id == null)
                 return new MissingGearResult(false, string.Empty);
 
             var data = equipment.Value;
-            uint mainHandItemId = data.Id.Length > EquipmentConstants.SlotMainHand
-                ? data.Id[EquipmentConstants.SlotMainHand]
-                : 0;
-            var expectedSlots = GetExpectedSlotIndices(classJobId, level, mainHandItemId, items);
+            var expectedSlots = GetExpectedSlotIndices(offHandExpected);
             var emptySlots = new List<string>();
 
             for (int i = 0; i < expectedSlots.Length; i++)
@@ -118,20 +126,13 @@ namespace RepairMe
                 : new MissingGearResult(false, string.Empty);
         }
 
-        internal static int GetExpectedEquippedSlotCount(
-            EquipmentData? equipment,
-            ushort classJobId,
-            byte level,
-            ExcelSheet<Lumina.Excel.Sheets.Item>? items)
+        internal static int GetExpectedEquippedSlotCount(EquipmentData? equipment, bool offHandExpected)
         {
             if (!equipment.HasValue)
                 return 0;
 
             var data = equipment.Value;
-            uint mainHandItemId = data.Id.Length > EquipmentConstants.SlotMainHand
-                ? data.Id[EquipmentConstants.SlotMainHand]
-                : 0;
-            var expectedSlots = GetExpectedSlotIndices(classJobId, level, mainHandItemId, items);
+            var expectedSlots = GetExpectedSlotIndices(offHandExpected);
             var count = 0;
 
             for (int i = 0; i < expectedSlots.Length; i++)
@@ -144,21 +145,13 @@ namespace RepairMe
             return count;
         }
 
-        internal static EquipmentSummary GetEquipmentSummary(
-            EquipmentData? equipment,
-            ushort classJobId,
-            byte level,
-            float lowThresholdPercent,
-            ExcelSheet<Lumina.Excel.Sheets.Item>? items)
+        internal static EquipmentSummary GetEquipmentSummary(EquipmentData? equipment, bool offHandExpected, float lowThresholdPercent)
         {
             if (!equipment.HasValue)
                 return new EquipmentSummary(0, 0, 0, 0, 0);
 
             var data = equipment.Value;
-            uint mainHandItemId = data.Id.Length > EquipmentConstants.SlotMainHand
-                ? data.Id[EquipmentConstants.SlotMainHand]
-                : 0;
-            var expectedSlots = GetExpectedSlotIndices(classJobId, level, mainHandItemId, items);
+            var expectedSlots = GetExpectedSlotIndices(offHandExpected);
             int equipped = 0;
             int needingRepair = 0;
             int readyForExtraction = 0;

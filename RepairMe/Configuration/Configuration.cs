@@ -151,24 +151,34 @@ namespace RepairMe
             else
             {
                 config = loadedCfg;
-                // migrate versions
-                if (config.Version == 0)
-                {
-                    config.PositionsMigrated = false;
-                    config.Version = 1;
-                }
-
-                if (config.Version < 2)
-                {
-                    foreach (var profile in config.PositionProfiles.Values)
-                        profile.MigrateLegacyAlertPositions();
-                    config.Version = CurrentVersion;
+                if (config.Migrate())
                     _needsInitialSave = true;
-                }
             }
 
             return config;
         }, System.Threading.LazyThreadSafetyMode.ExecutionAndPublication);
+
+        /// <summary>Upgrades a loaded configuration to <see cref="CurrentVersion"/>; returns true when anything changed.</summary>
+        internal bool Migrate()
+        {
+            if (Version >= CurrentVersion)
+                return false;
+
+            if (Version == 0)
+            {
+                PositionsMigrated = false;
+                Version = 1;
+            }
+
+            if (Version < 2)
+            {
+                foreach (var profile in PositionProfiles.Values)
+                    profile.MigrateLegacyAlertPositions();
+                Version = CurrentVersion;
+            }
+
+            return true;
+        }
 
         public void Save()
         {

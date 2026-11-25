@@ -1,3 +1,4 @@
+using System;
 using Dalamud.Plugin.Services;
 using Lumina.Excel;
 using GameDataConstants = RepairMe.RepairMeConstants.GameData;
@@ -45,31 +46,30 @@ namespace RepairMe
         /// <summary>
         /// Returns true if the current job requires an offhand item.
         /// </summary>
-        internal static bool IsOffHandExpected(ushort classJobId, byte level, uint mainHandItemId, ExcelSheet<Lumina.Excel.Sheets.Item> sheet)
+        internal static bool IsOffHandExpected(ushort classJobId, byte level, uint mainHandItemId, Func<uint, uint> itemCategoryOf)
         {
             // Fisher special case: spearfishing gig requires level >= 61.
             if (classJobId == 18)
                 return level >= 61;
 
             if (PlayerConstants.OneHandedCasterJobs.Contains(classJobId))
-                return IsOneHandedCasterMainHand(mainHandItemId, sheet);
+                return mainHandItemId != 0
+                       && IsOneHandedCasterCategory(itemCategoryOf(EquipmentAnalysis.NormalizeItemId(mainHandItemId)));
 
             return PlayerConstants.JobsRequiringOffHand.Contains(classJobId);
         }
 
-        private static bool IsOneHandedCasterMainHand(uint mainHandItemId, ExcelSheet<Lumina.Excel.Sheets.Item> sheet)
-        {
-            if (mainHandItemId == 0)
-                return false;
+        internal static bool IsOneHandedCasterCategory(uint itemUiCategory)
+            => itemUiCategory == GameDataConstants.ItemCategoryOneHandedThaumaturge
+               || itemUiCategory == GameDataConstants.ItemCategoryOneHandedConjurer;
 
-            var itemRow = sheet.GetRow(EquipmentAnalysis.NormalizeItemId(mainHandItemId));
-            if (itemRow.RowId == 0)
-                return false;
-
-            var category = itemRow.ItemUICategory.RowId;
-            return category == GameDataConstants.ItemCategoryOneHandedThaumaturge
-                   || category == GameDataConstants.ItemCategoryOneHandedConjurer;
-        }
+        /// <summary>Looks up an item's ItemUICategory row id (0 when the item is unknown).</summary>
+        internal static Func<uint, uint> ItemCategoryLookup(ExcelSheet<Lumina.Excel.Sheets.Item> sheet)
+            => normalizedItemId =>
+            {
+                var itemRow = sheet.GetRow(normalizedItemId);
+                return itemRow.RowId == 0 ? 0u : itemRow.ItemUICategory.RowId;
+            };
 
         private static string CapitalizeFirst(string value)
         {

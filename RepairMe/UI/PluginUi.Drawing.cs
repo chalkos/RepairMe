@@ -226,7 +226,7 @@ namespace RepairMe
             }
         }
 
-        private static string FormatPercentText(float value, float? extraValue, bool showSign, bool showDecimals)
+        internal static string FormatPercentText(float value, float? extraValue, bool showSign, bool showDecimals)
         {
             string Format(float v) => showSign && showDecimals ? $"{v:F2}%"
                 : showSign ? $"{Math.Floor(v):F0}%"

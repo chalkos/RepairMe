@@ -53,9 +53,8 @@ namespace RepairMe
                 return;
             }
 
-            // Floor, like the overlays: 99.6% must not read as 100%.
-            var condPct = (int)MathF.Floor(Math.Max(0f, lowestConditionPct));
-            var sbPct = (int)MathF.Floor(Math.Clamp(highestSpiritbondPct, 0f, 100f));
+            var condPct = FloorPercent(lowestConditionPct, float.MaxValue);
+            var sbPct = FloorPercent(highestSpiritbondPct, 100f);
 
             // Cheap early-out so this can be called every frame without formatting strings.
             if (dtr.LastConditionText != null && dtr.LastSpiritbondText != null
@@ -91,6 +90,10 @@ namespace RepairMe
             dtr.ConditionKey = (condPct, conditionSlot, showConditionLabel);
             dtr.SpiritbondKey = (sbPct, spiritbondSlot, showSpiritbondLabel);
         }
+
+        /// <summary>Floors like the overlays do, so 99.6% never reads as 100%.</summary>
+        internal static int FloorPercent(float value, float max)
+            => (int)MathF.Floor(Math.Clamp(value, 0f, max));
 
         private static string GetEquipmentSlotName(int slot)
             => slot >= 0 && slot < EquipmentConstants.SlotNames.Length

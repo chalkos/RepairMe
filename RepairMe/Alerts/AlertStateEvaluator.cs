@@ -2,7 +2,7 @@ using System.Numerics;
 
 namespace RepairMe
 {
-    internal enum AlertKind
+    public enum AlertKind
     {
         Normal,
         Critical,

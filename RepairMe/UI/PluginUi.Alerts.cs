@@ -114,7 +114,9 @@ namespace RepairMe
             if (key != _missingGearKey)
             {
                 _missingGearKey = key;
-                _missingGearResult = EquipmentAnalysis.GetMissingGear(tracker.GetLastEquipmentData(), classJobId, level, _const.Items);
+                var equipment = tracker.GetLastEquipmentData();
+                var offHandExpected = EquipmentAnalysis.ResolveOffHandExpected(equipment, classJobId, level, _const.Items);
+                _missingGearResult = EquipmentAnalysis.GetMissingGear(equipment, offHandExpected);
             }
 
             return ApplyMissingGearAlert(_const._alertStateEvaluator.EvaluateMissingGear(_missingGearResult, classJobId, Environment.TickCount64, Conf));

@@ -246,7 +246,7 @@ namespace RepairMe
 
                     new TextOverlayItem(this,
                         shouldRender: () => Conf.PositionsMigrated
-                                            && (HasActiveConditionAlert() || _const.isUiUnlocked && AnyConditionAlertEnabled()),
+                                            && OverlayVisibility.ShouldShowAlert(AnyConditionAlertEnabled(), HasActiveConditionAlert(), _const.isUiUnlocked),
                         textProvider: () => _conditionAlertCache.IsActive ? _conditionAlertCache.Text : Conf.AlertConditionLowText,
                         positionProvider: () => _const.position.AlertCondition,
                         positionWriter: v => _const.position.AlertCondition = v,
@@ -258,8 +258,9 @@ namespace RepairMe
                         clickActionProvider: () => _conditionAlertCache.ClickAction),
 
                     new TextOverlayItem(this,
-                        shouldRender: () => Conf.PositionsMigrated && Conf.AlertSpiritbondFullEnabled &&
-                                          (_const.spiritbond >= UiConstants.SpiritbondFullThreshold || _const.isUiUnlocked),
+                        shouldRender: () => Conf.PositionsMigrated
+                                            && OverlayVisibility.ShouldShowAlert(Conf.AlertSpiritbondFullEnabled,
+                                                _const.spiritbond >= UiConstants.SpiritbondFullThreshold, _const.isUiUnlocked),
                         textProvider: () => Conf.AlertSpiritbondFullText,
                         positionProvider: () => _const.position.AlertSpiritbond,
                         positionWriter: v => _const.position.AlertSpiritbond = v,
@@ -295,8 +296,8 @@ namespace RepairMe
                         clickActionProvider: () => null),
 
                     new TextOverlayItem(this,
-                        shouldRender: () => Conf.PositionsMigrated && Conf.AlertMissingGearEnabled
-                                            && (HasMissingGearAlert() || _const.isUiUnlocked),
+                        shouldRender: () => Conf.PositionsMigrated
+                                            && OverlayVisibility.ShouldShowAlert(Conf.AlertMissingGearEnabled, HasMissingGearAlert(), _const.isUiUnlocked),
                         textProvider: () => _missingGearAlertCache.IsActive
                             ? _missingGearAlertCache.Text
                             : Conf.AlertMissingGearText.Replace("{slot}", EquipmentConstants.SlotNames[EquipmentConstants.SlotHead]),

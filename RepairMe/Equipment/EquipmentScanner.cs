@@ -123,38 +123,39 @@ namespace RepairMe
                 // Null check on pointer before accessing members
                 if (inventoryItem == null) continue;
                 
-                var itemId = inventoryItem->ItemId;
-                var condition = inventoryItem->Condition;
-                var spiritbond = Math.Min((uint)inventoryItem->SpiritbondOrCollectability, 10000u);
-
-                // Slot emptied: clear cached values so lowest-condition recalculates
-                if (idValues[i] != 0 && itemId == 0)
-                {
-                    idValues[i] = 0;
-                    conditionValues[i] = 0;
-                    spiritbondValues[i] = 0; // Reset spiritbond when slot cleared
-                    isUpdate = true;
-                    continue;
-                }
-
-                // Already-empty slot: skip, no change needed
-                if (idValues[i] == 0 && itemId == 0)
-                {
-                    continue;
-                }
-
-                if (conditionValues[i] != condition
-                    || idValues[i] != itemId
-                    || spiritbondValues[i] != (ushort)spiritbond)
-                    isUpdate = true;
-
-                spiritbondValues[i] = (ushort)spiritbond;
-                conditionValues[i] = condition;
-                idValues[i] = itemId;
+                isUpdate |= ApplySlot(idValues, conditionValues, spiritbondValues, i,
+                    inventoryItem->ItemId, inventoryItem->Condition, inventoryItem->SpiritbondOrCollectability);
             }
 
             if (isUpdate)
                 NotificationTarget?.Invoke(BuildEquipmentData);
+        }
+
+        /// <summary>Stores one scanned slot into the cached arrays; returns true when the slot changed.</summary>
+        internal static bool ApplySlot(uint[] ids, ushort[] conditions, ushort[] spiritbonds, int slot,
+            uint itemId, ushort condition, uint rawSpiritbond)
+        {
+            var spiritbond = (ushort)Math.Min(rawSpiritbond, EquipmentConstants.MaxSpiritbondRawValue);
+
+            // Slot emptied: clear cached values so lowest-condition recalculates
+            if (ids[slot] != 0 && itemId == 0)
+            {
+                ids[slot] = 0;
+                conditions[slot] = 0;
+                spiritbonds[slot] = 0; // Reset spiritbond when slot cleared
+                return true;
+            }
+
+            // Already-empty slot: skip, no change needed
+            if (ids[slot] == 0 && itemId == 0)
+                return false;
+
+            var changed = conditions[slot] != condition || ids[slot] != itemId || spiritbonds[slot] != spiritbond;
+
+            spiritbonds[slot] = spiritbond;
+            conditions[slot] = condition;
+            ids[slot] = itemId;
+            return changed;
         }
     }
 }

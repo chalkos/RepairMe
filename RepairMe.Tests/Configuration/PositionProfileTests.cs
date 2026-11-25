@@ -46,15 +46,30 @@ public class PositionProfileTests
     }
 
     [Fact]
-    public void Default_overlay_positions_do_not_collide()
+    public void Default_overlay_positions_do_not_stack_on_top_of_each_other()
     {
+        const float MinSeparation = 20f;
         var p = new PositionProfile();
-        var positions = new[]
+        var positions = new Dictionary<string, Vector2>
         {
-            p.PercentCondition, p.AlertCondition, p.AlertMissingGear, p.BarCondition, p.ConditionLabel,
-            p.BarSpiritbond, p.PercentSpiritbond, p.AlertSpiritbond, p.SpiritbondLabel,
+            [nameof(p.PercentCondition)] = p.PercentCondition,
+            [nameof(p.AlertCondition)] = p.AlertCondition,
+            [nameof(p.AlertMissingGear)] = p.AlertMissingGear,
+            [nameof(p.BarCondition)] = p.BarCondition,
+            [nameof(p.ConditionLabel)] = p.ConditionLabel,
+            [nameof(p.BarSpiritbond)] = p.BarSpiritbond,
+            [nameof(p.PercentSpiritbond)] = p.PercentSpiritbond,
+            [nameof(p.AlertSpiritbond)] = p.AlertSpiritbond,
+            [nameof(p.SpiritbondLabel)] = p.SpiritbondLabel,
         };
 
-        Assert.Equal(positions.Length, positions.Distinct().Count());
+        var overlapping = (from a in positions
+                           from b in positions
+                           where string.CompareOrdinal(a.Key, b.Key) < 0
+                                 && Math.Abs(a.Value.X - b.Value.X) < MinSeparation
+                                 && Math.Abs(a.Value.Y - b.Value.Y) < MinSeparation
+                           select $"{a.Key}/{b.Key}").ToList();
+
+        Assert.Empty(overlapping);
     }
 }
