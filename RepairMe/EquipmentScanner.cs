@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
-using Dalamud.Game;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using EquipmentConstants = RepairMe.RepairMeConstants.Equipment;
+using ScannerConstants = RepairMe.RepairMeConstants.Scanner;
 
 namespace RepairMe
 {
@@ -13,21 +14,32 @@ namespace RepairMe
         public readonly ushort[] Spiritbond;
         public readonly float[] SpiritbondPercents;
         public readonly float LowestConditionPercent;
+        public readonly int LowestConditionSlot;
+        public readonly float HighestConditionPercent;
+        public readonly int HighestConditionSlot;
         public readonly float LowestSpiritbondPercent;
+        public readonly int LowestSpiritbondSlot;
         public readonly float HighestSpiritbondPercent;
+        public readonly int HighestSpiritbondSlot;
 
         public EquipmentData(uint[] idValues, ushort[] conditionValues, ushort[] spiritbondValues)
         {
-            Id = new uint[EquipmentScanner.EquipmentContainerSize];
-            Condition = new ushort[EquipmentScanner.EquipmentContainerSize];
-            Spiritbond = new ushort[EquipmentScanner.EquipmentContainerSize];
-            SpiritbondPercents = new float[EquipmentScanner.EquipmentContainerSize];
+            Id = (uint[])idValues.Clone();
+            Condition = (ushort[])conditionValues.Clone();
+            Spiritbond = (ushort[])spiritbondValues.Clone();
+            SpiritbondPercents = new float[EquipmentConstants.ContainerSize];
 
-            LowestConditionPercent = 60000;
-            LowestSpiritbondPercent = 10000;
-            HighestSpiritbondPercent = 0;
+            float lowestCondition = ushort.MaxValue;
+            float highestCondition = 0f;
+            float lowestSpiritbond = EquipmentConstants.MaxSpiritbondRawValue;
+            float highestSpiritbond = 0f;
+            var lowestSlot = 0;
+            var highestConditionSlot = 0;
+            var lowestSbSlot = 0;
+            var highestSbSlot = 0;
+            bool hasItems = false;
 
-            for (var i = 0; i < EquipmentScanner.EquipmentContainerSize; i++)
+            for (var i = 0; i < EquipmentConstants.ContainerSize; i++)
             {
                 Id[i] = idValues[i];
                 Condition[i] = conditionValues[i];
@@ -38,159 +50,175 @@ namespace RepairMe
                     SpiritbondPercents[i] = -1;
                     continue;
                 }
-                SpiritbondPercents[i] = spiritbondValues[i] / 10000f;
 
-                if (LowestConditionPercent > Condition[i]) LowestConditionPercent = Condition[i];
+                hasItems = true;
+                SpiritbondPercents[i] = spiritbondValues[i] / 100f; // 0-100 percentage (standardized scale for all percent fields)
 
-                if (HighestSpiritbondPercent < spiritbondValues[i])
-                    HighestSpiritbondPercent = spiritbondValues[i];
-
-                if (LowestSpiritbondPercent > spiritbondValues[i])
-                    LowestSpiritbondPercent = spiritbondValues[i];
+                if (lowestCondition > Condition[i]) { lowestCondition = Condition[i]; lowestSlot = i; }
+                if (highestCondition < Condition[i]) { highestCondition = Condition[i]; highestConditionSlot = i; }
+                if (highestSpiritbond < spiritbondValues[i]) { highestSpiritbond = spiritbondValues[i]; highestSbSlot = i; }
+                if (lowestSpiritbond > spiritbondValues[i]) { lowestSpiritbond = spiritbondValues[i]; lowestSbSlot = i; }
             }
 
-            LowestConditionPercent /= 300f;
-            HighestSpiritbondPercent /= 100f;
-            LowestSpiritbondPercent /= 100f;
+            LowestConditionPercent = hasItems ? lowestCondition / EquipmentConstants.MaxConditionRawValue : 100f; // 0-100 percentage (condition max is MaxConditionRawValue)
+            LowestConditionSlot = hasItems ? lowestSlot : 0;
+            HighestConditionPercent = hasItems ? highestCondition / EquipmentConstants.MaxConditionRawValue : 100f; // 0-100 percentage (condition max is MaxConditionRawValue)
+            HighestConditionSlot = hasItems ? highestConditionSlot : 0;
+            HighestSpiritbondPercent = hasItems ? highestSpiritbond / 100f : 0f; // 0-100 percentage (standardized scale)
+            HighestSpiritbondSlot = hasItems ? highestSbSlot : 0;
+            LowestSpiritbondPercent = hasItems ? lowestSpiritbond / 100f : 100f; // 0-100 percentage (standardized scale)
+            LowestSpiritbondSlot = hasItems ? lowestSbSlot : 0;
         }
     }
 
     public unsafe class EquipmentScanner : IDisposable
     {
-        internal const uint EquipmentContainerSize = 13;
-
-        internal static readonly string[] EquipmentSlotNames = new[]
-        {
-            "mhand",
-            "ohand",
-            "head",
-            "body",
-            "hands",
-            "rip belt",
-            "legs",
-            "feet",
-            "ear",
-            "neck",
-            "bracer",
-            "ring1",
-            "ring2"
-        };
-
-        public Action? NotificationTarget { private get; set; }
-
-        private InventoryManager* inventoryManager;
-        private InventoryContainer* equipmentContainer;
-        private InventoryItem* equipmentInventoryItem;
+        internal Action<EquipmentData>? NotificationTarget { get; set; }
 
         private readonly ushort[] conditionValues;
         private readonly ushort[] spiritbondValues;
         private readonly uint[] idValues;
 
-        private readonly Stopwatch lastUpdate;
-
-#if DEBUG
-        private readonly Stopwatch bm;
-        private long minTicks;
-        private long maxTicks;
-        private ulong sumTicks;
-        private ulong countTicks = 0;
-#endif
+        private readonly Stopwatch _scanTimer;
+        private long _lastScanElapsedMs;
+        private bool _isScanning;
+        private bool _disposed;
 
         public EquipmentData BuildEquipmentData => new(idValues, conditionValues, spiritbondValues);
 
-
         public EquipmentScanner()
         {
-#if DEBUG
-            bm = new Stopwatch();
-#endif
-            lastUpdate = new Stopwatch();
-            lastUpdate.Start();
+            _scanTimer = Stopwatch.StartNew();
+            _lastScanElapsedMs = 0;
+            conditionValues = new ushort[EquipmentConstants.ContainerSize];
+            spiritbondValues = new ushort[EquipmentConstants.ContainerSize];
+            idValues = new uint[EquipmentConstants.ContainerSize];
 
-            conditionValues = new ushort[EquipmentContainerSize];
-            spiritbondValues = new ushort[EquipmentContainerSize];
-            idValues = new uint[EquipmentContainerSize];
+            // Guard against null static DI accessors before subscribing.
+            // ClientState lifecycle subscriptions are owned by the constructor/Dispose,
+            // while Framework.Update scan subscriptions are owned by Enable/DisableScanning.
+            if (RepairMe.ClientState != null)
+            {
+                RepairMe.ClientState.Login += ClientStateOnLogin;
+                RepairMe.ClientState.Logout += ClientStateOnLogout;
+                RepairMe.ClientState.EnterPvP += DisableScanning;
+                RepairMe.ClientState.LeavePvP += EnableScanning;
+            }
 
             EnableScanning();
-
-            RepairMe.ClientState.Login += ClientStateOnLogin;
-            RepairMe.ClientState.Logout += ClientStateOnLogout;
-            RepairMe.Framework.Update += GetConditionInfo;
-            RepairMe.ClientState.EnterPvP += DisableScanning;
-            RepairMe.ClientState.LeavePvP += EnableScanning;
         }
 
         public void Dispose()
         {
-            RepairMe.Framework.Update -= GetConditionInfo;
-            RepairMe.ClientState.Login -= ClientStateOnLogin;
-            RepairMe.ClientState.Logout -= ClientStateOnLogout;
-            RepairMe.ClientState.EnterPvP -= DisableScanning;
-            RepairMe.ClientState.LeavePvP -= EnableScanning;
+            if (_disposed)
+                return;
+
+            _disposed = true;
+
+            var framework = RepairMe.Framework;
+            if (framework != null)
+                framework.Update -= GetConditionInfo;
+            _isScanning = false;
+
+            var clientState = RepairMe.ClientState;
+            if (clientState != null)
+            {
+                clientState.Login -= ClientStateOnLogin;
+                clientState.Logout -= ClientStateOnLogout;
+                clientState.EnterPvP -= DisableScanning;
+                clientState.LeavePvP -= EnableScanning;
+            }
+
+            NotificationTarget = null;
         }
 
         private void ClientStateOnLogin() => EnableScanning();
 
-        private void ClientStateOnLogout(int a,int b) => DisableScanning();
+        private void ClientStateOnLogout(int _, int realmId) => DisableScanning(); // realmId unused but signature required by event delegate
 
         private void EnableScanning()
         {
-            inventoryManager = InventoryManager.Instance();
-            equipmentContainer = inventoryManager->GetInventoryContainer(InventoryType.EquippedItems);
-            equipmentInventoryItem = equipmentContainer->GetInventorySlot(0);
+            if (_disposed) return;
+            if (_isScanning) return; // Prevent duplicate scan subscriptions
+
+            var framework = RepairMe.Framework;
+            if (framework == null) return;
+
+            // Re-subscribe to Framework.Update to resume scanning.
+            framework.Update += GetConditionInfo;
+            _isScanning = true;
         }
 
         private void DisableScanning()
         {
-            inventoryManager = null;
-            equipmentContainer = null;
-            equipmentInventoryItem = null;
+            if (_disposed) return;
+            if (!_isScanning) return;
+
+            // Unsubscribe from framework to stop scanning.
+            var framework = RepairMe.Framework;
+            if (framework != null)
+                framework.Update -= GetConditionInfo;
+            _isScanning = false;
+
+            // Note: Do NOT unsubscribe from ClientState events here.
+            // They must remain subscribed so that EnableScanning/DisableScanning
+            // can be triggered on login/logout/PvP transitions.
         }
 
         private void GetConditionInfo(IFramework framework)
         {
-#if DEBUG
-            bm.Restart();
-#endif
-            if (lastUpdate.ElapsedMilliseconds >= 200)
-            {
-                lastUpdate.Restart();
+            if (_disposed) return;
 
-                var isUpdate = false;
-                var inventoryItem = equipmentInventoryItem;
-                if (inventoryItem == null) return;
-                for (var i = 0; i < EquipmentContainerSize; i++, inventoryItem++)
+            var elapsedMs = _scanTimer.ElapsedMilliseconds;
+            if (elapsedMs - _lastScanElapsedMs < ScannerConstants.ThrottleIntervalMs) return;
+            _lastScanElapsedMs = elapsedMs;
+
+            // Re-fetch equipmentInventoryItem pointer each scan to avoid stale pointer issues
+            var inventoryManager = InventoryManager.Instance();
+            if (inventoryManager == null) return;
+            var equippedContainer = inventoryManager->GetInventoryContainer(InventoryType.EquippedItems);
+            if (equippedContainer == null) return;
+            var inventoryItem = equippedContainer->GetInventorySlot(0);
+            if (inventoryItem == null) return;
+
+            var isUpdate = false;
+            for (var i = 0; i < EquipmentConstants.ContainerSize; i++, inventoryItem++)
+            {
+                // Null check on pointer before accessing members
+                if (inventoryItem == null) continue;
+                
+                var itemId = inventoryItem->ItemId;
+                var condition = inventoryItem->Condition;
+                var spiritbond = Math.Min((uint)inventoryItem->SpiritbondOrCollectability, 10000u);
+
+                // Slot emptied: clear cached values so lowest-condition recalculates
+                if (idValues[i] != 0 && itemId == 0)
                 {
-                    isUpdate = conditionValues[i] != inventoryItem->Condition || idValues[i] != inventoryItem->ItemId ||
-                               spiritbondValues[i] != inventoryItem->SpiritbondOrCollectability || isUpdate;
-                    spiritbondValues[i] = inventoryItem->SpiritbondOrCollectability;
-                    conditionValues[i] = inventoryItem->Condition;
-                    idValues[i] = inventoryItem->ItemId;
+                    idValues[i] = 0;
+                    conditionValues[i] = 0;
+                    spiritbondValues[i] = 0; // Reset spiritbond when slot cleared
+                    isUpdate = true;
+                    continue;
                 }
 
-                if (isUpdate && NotificationTarget != null) NotificationTarget();
+                // Already-empty slot: skip, no change needed
+                if (idValues[i] == 0 && itemId == 0)
+                {
+                    continue;
+                }
+
+                if (conditionValues[i] != condition
+                    || idValues[i] != itemId
+                    || spiritbondValues[i] != (ushort)spiritbond)
+                    isUpdate = true;
+
+                spiritbondValues[i] = (ushort)spiritbond;
+                conditionValues[i] = condition;
+                idValues[i] = itemId;
             }
 
-#if DEBUG
-            bm.Stop();
-            if (countTicks is 0 or >= 300)
-            {
-                if (countTicks >= 300)
-                    RepairMe.Log.Information(
-                        $"Took {minTicks}-{maxTicks} ( ran {countTicks} times ) avg: {sumTicks / (double) countTicks}");
-                minTicks = maxTicks = bm.ElapsedTicks;
-                sumTicks = (ulong) bm.ElapsedTicks;
-                countTicks = 0;
-            }
-            else
-            {
-                if (minTicks > bm.ElapsedTicks) minTicks = bm.ElapsedTicks;
-                if (maxTicks < bm.ElapsedTicks) maxTicks = bm.ElapsedTicks;
-                sumTicks += (ulong) bm.ElapsedTicks;
-            }
-
-            countTicks++;
-#endif
+            if (isUpdate)
+                NotificationTarget?.Invoke(BuildEquipmentData);
         }
     }
 }

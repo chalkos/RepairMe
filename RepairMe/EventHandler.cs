@@ -1,126 +1,83 @@
 ﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace RepairMe
 {
     public class EventHandler : IDisposable
     {
-        private Configuration conf => Configuration.GetOrLoad();
+        private readonly Configuration _conf;
         private readonly EquipmentScanner equipmentScanner;
-        private readonly ManualResetEvent manualResetEvent;
-        private const int CooldownMilliseconds = 500;
-        internal EquipmentData? EquipmentScannerLastEquipmentData;
-        private CancellationTokenSource? eventLoopTokenSource;
+        private EquipmentData? _lastEquipmentData;
+        internal EquipmentData? GetLastEquipmentData() => _lastEquipmentData;
+        internal int EquipmentVersion { get; private set; }
+        private bool _disposed;
+        private static IPlayerState PlayerState => RepairMe.PlayerState;
+        internal event Action? EquipmentChanged;
 
         public bool IsActive => IsLoggedIn
-                                && RepairMe.PlayerState.IsLoaded
+                                && PlayerState.IsLoaded
                                 && !IsLoading
                                 && !IsInPvPArea
                                 && !IsOccupied;
 
-        public bool IsOccupied => conf.HideUiWhenOccupied && (
-            RepairMe.Conditions[ConditionFlag.Occupied]
-            || RepairMe.Conditions[ConditionFlag.OccupiedInCutSceneEvent]
-            || RepairMe.Conditions[ConditionFlag.OccupiedSummoningBell]
-            || RepairMe.Conditions[ConditionFlag.OccupiedInQuestEvent]
-            || RepairMe.Conditions[ConditionFlag.Occupied38]
-            || RepairMe.Conditions[ConditionFlag.OccupiedInEvent]);
+        // Guard against null Conditions post-dispose using null-conditional indexer.
+        public bool IsOccupied => _conf.HideUiWhenOccupied && (
+            RepairMe.Conditions?[ConditionFlag.Occupied] == true
+            || RepairMe.Conditions?[ConditionFlag.OccupiedInCutSceneEvent] == true
+            || RepairMe.Conditions?[ConditionFlag.OccupiedSummoningBell] == true
+            || RepairMe.Conditions?[ConditionFlag.OccupiedInQuestEvent] == true
+            || RepairMe.Conditions?[ConditionFlag.Occupied38] == true
+            || RepairMe.Conditions?[ConditionFlag.OccupiedInEvent] == true);
 
-        public bool IsInPvPArea => GameMain.IsInPvPArea();
-
-        private bool IsLoggedIn => RepairMe.ClientState.IsLoggedIn;
-
-        private bool IsLoading => RepairMe.Conditions[ConditionFlag.BetweenAreas]
-                                  || RepairMe.Conditions[ConditionFlag.BetweenAreas51];
+        // Cached with cooldown to avoid excessive GameMain.IsInPvPArea() calls each tick.
+        // GameMain.IsInPvPArea() is cheap but caching reduces redundant interop calls.
+        private DateTime _lastPvPCheckTime;
+        private bool _lastPvPCheckValue;
+        public bool IsInPvPArea
+        {
+            get
+            {
+                var now = DateTime.UtcNow;
+                if (now - _lastPvPCheckTime > TimeSpan.FromMilliseconds(500))
+                {
+                    _lastPvPCheckValue = GameMain.IsInPvPArea();
+                    _lastPvPCheckTime = now;
+                }
+                return _lastPvPCheckValue;
+            }
+        }
+        // Guard against null static accessors post-dispose.
+        // ClientState and Conditions may be null if RepairMe has been disposed.
+        private bool IsLoggedIn => RepairMe.ClientState?.IsLoggedIn == true;
+        private bool IsLoading => RepairMe.Conditions?[ConditionFlag.BetweenAreas] == true
+                                  || RepairMe.Conditions?[ConditionFlag.BetweenAreas51] == true;
 
         public EventHandler(EquipmentScanner equipmentScanner)
         {
             this.equipmentScanner = equipmentScanner;
-            manualResetEvent = new ManualResetEvent(false);
+            _conf = Configuration.GetOrLoad();
 
-            equipmentScanner.NotificationTarget = Notify;
-
-            RepairMe.ClientState.Login += ClientStateOnOnLogin;
-            RepairMe.ClientState.Logout += ClientStateOnOnLogout;
+            equipmentScanner.NotificationTarget += OnNotificationTarget;
         }
 
         public void Dispose()
         {
-            RepairMe.ClientState.Login -= ClientStateOnOnLogin;
-            RepairMe.ClientState.Logout -= ClientStateOnOnLogout;
+            if (_disposed) return;
 
-            manualResetEvent?.Dispose();
-            eventLoopTokenSource?.Cancel();
-            eventLoopTokenSource?.Dispose();
+            _disposed = true;
+            equipmentScanner.NotificationTarget -= OnNotificationTarget;
+            EquipmentChanged = null;
         }
 
-        private void ClientStateOnOnLogin()
+        private void OnNotificationTarget(EquipmentData data)
         {
-            Notify();
-        }
+            if (_disposed) return;
 
-        private void ClientStateOnOnLogout(int a, int b)
-        {
-            Block();
-        }
-
-        private void Notify()
-        {
-            manualResetEvent.Set();
-        }
-
-        private void Block()
-        {
-            manualResetEvent.Reset();
-        }
-
-        public void Start()
-        {
-            eventLoopTokenSource ??= new CancellationTokenSource();
-
-            Task.Run(() => EventLoop(eventLoopTokenSource.Token))
-                .ContinueWith(t =>
-                {
-                    if (t.Exception == null) return;
-                    var aggException = t.Exception.Flatten();
-                    foreach (var exception in aggException.InnerExceptions)
-                    {
-                        if (exception is OperationCanceledException || exception is ObjectDisposedException)
-                            continue;
-                        RepairMe.Log.Error(exception, "RepairMe stopped unexpectedly. Restart it to continue using it.");
-                    }
-                }, TaskContinuationOptions.OnlyOnFaulted);
-        }
-
-        private void EventLoop(CancellationToken token)
-        {
-            try
-            {
-                do
-                {
-                    WaitHandle.WaitAny(new[] { token.WaitHandle, manualResetEvent } /*, TimeSpan.FromSeconds(10)*/);
-
-                    EquipmentScannerLastEquipmentData = equipmentScanner.BuildEquipmentData;
-#if DEBUG
-                    RepairMe.Log.Information($"RepairMe update @ {DateTime.Now:HH:mm:ss}");
-#endif
-
-                    // limits the equipment refreshes to 1 per CooldownMilliseconds but still updating immediately when
-                    // the first equipment update arrives in the CooldownMilliseconds timeframe
-                    Block();
-                    WaitHandle.WaitAny(new[] { token.WaitHandle }, CooldownMilliseconds);
-                } while (!token.IsCancellationRequested);
-            }
-            catch (Exception e)
-            {
-                if (e is OperationCanceledException or ObjectDisposedException)
-                    throw;
-
-                RepairMe.Log.Fatal(e, "prevented EventHandler crash");
-            }
+            _lastEquipmentData = data;
+            EquipmentVersion++;
+            EquipmentChanged?.Invoke();
         }
     }
 }
