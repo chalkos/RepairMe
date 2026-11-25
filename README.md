@@ -5,19 +5,56 @@ Plugin for XivLauncher/Dalamud that helps you notice when your gear needs to be 
 ## Commands
 
 - `/repairme` - opens the config window
+- `/repairme condition [bar|percent|alert [low|critical|repairable]]` - toggles condition elements (no argument toggles all of them)
+- `/repairme spiritbond [bar|percent|alert]` - toggles spiritbond elements (no argument toggles all of them)
+- `/repairme missing [alert]` - toggles the missing-gear alert
 
 ## Features
 
 - Display a bar that shows the condition of your most broken item, and near it a number showing the exact condition percentage
     - Can display only the bar, only the percentage, or none (to only show alerts)
     - Bar size & orientation are configurable
-- Display alerts (text) when the condition is low or critical (condition low and critical thresholds are configurable)
-    - Alerts' can be positioned independently of the condition bar, or even hidden completely
+    - Percentages are rounded down, so anything under 100% never reads as 100%
+- Display alerts (text) when the condition is low or critical (condition low and critical thresholds are configurable), or optionally whenever any equipment is below 100% ("repairable")
+    - Alerts can be positioned independently of the condition bar, or even hidden completely
+    - Alert and label text can be scaled, and each alert can play a configurable sound effect
+- Display an alert when a slot your job expects to be filled is empty (off-hand is only expected for jobs that use one)
+    - The alert waits about 2 seconds, so swapping gear on a job change doesn't trigger it
+- Spiritbond display can be limited to items above a minimum item level
+- Server info bar (DTR) entries show the lowest condition and highest spiritbond, with the affected slot in the tooltip
+- Characters can be given alternative condition thresholds (Shift+Click the X in the list to remove one)
 - Bar and alerts are clickthrough, but can be moved by unlocking them in the config. When unlocked they will have a red background showing the draggable area (lock them to hide the red background)
 - With the config open, testing mode simulates different gear condition percentages to allow adjusting the colors without the need to equip gear with lower condition
 - Almost all text and background colors can be configured
+- Settings are organized in tabs, and a debug window shows the scanned equipment data
+
+## Development
+
+Run `make help` to list the targets. The common ones:
+
+- `make build` - build the plugin
+- `make test` - run the unit tests
+- `make lint` - check code style and fail on compiler warnings
+- `make validate-workflows` - lint the GitHub Actions workflows with actionlint (uses a local `actionlint`, or podman/docker)
+- `make ci` - everything CI runs
+
+Building and testing need a Dalamud install. Set `DALAMUD_HOME` to its dev folder, or run `make fetch-dalamud DALAMUD_HOME=/some/folder` to download one. If `dotnet` is not on your `PATH`, pass `DOTNET=/path/to/dotnet`.
 
 ## Changelog
+* v2.0.0
+  * add alert for repairable equipment (below 100%)
+  * add alert for empty equipment slots, based on the current job (delayed about 2 seconds so job changes don't trigger it)
+  * add server info bar (DTR) entries for condition and spiritbond
+  * add alert and label scaling, optional overlay labels and per-alert sound effects
+  * add minimum item level filter for spiritbond
+  * add `/repairme` subcommands to toggle elements from chat
+  * add a tabbed settings window and an expanded debug window
+  * alerts can always be positioned while "Move UI" is on, even when not triggered
+  * configurations are migrated: the low and critical alert positions are now a single position (the old low alert position is kept)
+  * equipment scanning no longer uses a background thread or cached game pointers
+  * percentages are rounded down instead of to the nearest value
+  * add unit tests for the alert, equipment and configuration logic
+  * add a Makefile and a CI workflow that builds, tests and lints
 * v1.0.1.22
   * settings window render optimization
 * v1.0.1.21
